@@ -11,7 +11,8 @@ BASEDIR2=$(dirname "$(dirname "$BASEDIR")")
 BASEDIR3=$BASEDIR/builds/build-UDAR_GUI-Desktop_Qt_5_7_0_GCC_64bit-Debug-OSX
 echo "fixing permissions in $BASEDIR3/"
 
-BASEDIR4=/Users/sam/.config/QtProject
+#BASEDIR4=/Users/sam/.config/QtProject
+BASEDIR4=~/.config/QtProject
 echo "fixing permissions in $BASEDIR4/"
 
 sudo chown -R $USER ./$BASEDIR/
