@@ -14,6 +14,6 @@ echo "fixing permissions in $BASEDIR3/"
 BASEDIR4=/Users/sam/.config/QtProject
 echo "fixing permissions in $BASEDIR4/"
 
-sudo chown -R sam ./$BASEDIR/
-sudo chown -R sam ./$BASEDIR3/
-sudo chown -R sam $BASEDIR4/
+sudo chown -R $USER ./$BASEDIR/
+sudo chown -R $USER ./$BASEDIR3/
+sudo chown -R $USER $BASEDIR4/
