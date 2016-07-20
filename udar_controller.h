@@ -75,6 +75,7 @@ struct chirp_parameters {
     uint32_t freq_off;
     uint32_t tuning_word;
     uint32_t num_samples;
+    uint32_t control_word;
 };
 struct fmc150_parameters {
     uint32_t command_id;
@@ -93,6 +94,7 @@ struct fmc150_parameters {
     u_char code_check1;
     u_char code_check2;
     uint16_t code_check16;
+    uint32_t control_word;
 };
 
 namespace Ui {

@@ -595,6 +595,22 @@ void UDAR_Controller::storeChirpParams(){
     chirp_params.freq_off = (uint32_t)ui->freqOffset_spinBox->value();
     chirp_params.tuning_word = (uint32_t)ui->chirpTuningWord_spinBox->value();
     chirp_params.num_samples = (uint32_t)ui->numSamples_spinBox->value();
+
+    u_char select_adc_l = (u_char)ui->adc_data_l_radioButton->isChecked();
+    u_char select_dac_l = (u_char)ui->dac_data_l_radioButton->isChecked();
+    u_char select_adc_ctr_l = (u_char)ui->adc_counter_l_radioButton->isChecked();
+    u_char select_glbl_ctr_l = (u_char)ui->global_counter_l_radioButton->isChecked();
+    u_char select_adc_u = (u_char)ui->adc_data_u_radioButton->isChecked();
+    u_char select_dac_u = (u_char)ui->dac_data_u_radioButton->isChecked();
+    u_char select_adc_ctr_u = (u_char)ui->adc_counter_u_radioButton->isChecked();
+    u_char select_glbl_ctr_u = (u_char)ui->global_counter_u_radioButton->isChecked();
+
+    uint32_t select_data_l = 0*select_adc_l + select_dac_l + 2*select_adc_ctr_l + 3*select_glbl_ctr_l;
+    uint32_t select_data_u = 0*select_adc_u + select_dac_u + 2*select_adc_ctr_u + 3*select_glbl_ctr_u;
+    uint32_t select_data = (select_data_l & 0x0F) + ((select_data_u<<4) & 0xF0);
+
+    chirp_params.control_word = (uint32_t)(select_data & 0x000000FF);
+    //chirp_params.control_word = (uint32_t)ui->dacLoopback_checkBox->isChecked();
 }
 void UDAR_Controller::storeFMC150Params(){
 
@@ -628,6 +644,7 @@ void UDAR_Controller::storeFMC150Params(){
     fmc150_params.code_check1 = cdc_val + ads_val + dac_val + amc_val;
     fmc150_params.code_check2 = chk_code8;
     fmc150_params.code_check16 = chk_code;
+    fmc150_params.control_word = 0;
 }
 
 void UDAR_Controller::calculateChirpParams(){
@@ -1400,8 +1417,8 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
      int start_offset = 0;
      int fft_plotlen = datasize;
      if(numjumps>3){
-        start_offset = cjumps[1];
-        fft_plotlen = cjumps[2] - start_offset;
+        start_offset = cjumps[2];
+        fft_plotlen = cjumps[3] - start_offset;
      }
      else if(numjumps>2){
         start_offset = cjumps[0];

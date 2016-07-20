@@ -35,7 +35,7 @@
        <x>0</x>
        <y>8</y>
        <width>831</width>
-       <height>159</height>
+       <height>181</height>
       </rect>
      </property>
      <property name="currentIndex">
@@ -421,6 +421,19 @@
        </property>
        <property name="text">
         <string>Reset Defaults</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="dacLoopback_checkBox">
+       <property name="geometry">
+        <rect>
+         <x>18</x>
+         <y>104</y>
+         <width>127</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>DAC Loopback Test</string>
        </property>
       </widget>
      </widget>
@@ -1254,178 +1267,50 @@
     <widget class="QTabWidget" name="tabWidget_b">
      <property name="geometry">
       <rect>
-       <x>-2</x>
-       <y>154</y>
-       <width>831</width>
-       <height>185</height>
+       <x>218</x>
+       <y>190</y>
+       <width>609</width>
+       <height>145</height>
       </rect>
      </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="tab_b1">
+     <widget class="QWidget" name="tab_2">
       <attribute name="title">
-       <string>Network</string>
+       <string>RX</string>
       </attribute>
-      <widget class="QLineEdit" name="srcMacAddr">
+      <widget class="QPushButton" name="plotOutputButton">
        <property name="geometry">
         <rect>
-         <x>480</x>
-         <y>26</y>
-         <width>107</width>
-         <height>21</height>
-        </rect>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_2">
-       <property name="geometry">
-        <rect>
-         <x>480</x>
-         <y>6</y>
-         <width>71</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Source Mac</string>
-       </property>
-      </widget>
-      <widget class="QLineEdit" name="srcIpAddr">
-       <property name="geometry">
-        <rect>
-         <x>480</x>
-         <y>66</y>
-         <width>107</width>
-         <height>21</height>
-        </rect>
-       </property>
-      </widget>
-      <widget class="QLineEdit" name="destIpAddr">
-       <property name="geometry">
-        <rect>
-         <x>340</x>
-         <y>64</y>
-         <width>113</width>
-         <height>21</height>
-        </rect>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label">
-       <property name="geometry">
-        <rect>
-         <x>340</x>
-         <y>6</y>
-         <width>101</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Dest Mac</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_4">
-       <property name="geometry">
-        <rect>
-         <x>476</x>
-         <y>48</y>
-         <width>59</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Source IP</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_3">
-       <property name="geometry">
-        <rect>
-         <x>340</x>
-         <y>46</y>
-         <width>59</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Dest IP</string>
-       </property>
-      </widget>
-      <widget class="QLineEdit" name="destMacAddr">
-       <property name="geometry">
-        <rect>
-         <x>340</x>
-         <y>26</y>
-         <width>113</width>
-         <height>21</height>
-        </rect>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_5">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>8</y>
-         <width>81</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Interface</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="writeButton">
-       <property name="geometry">
-        <rect>
-         <x>120</x>
-         <y>24</y>
-         <width>117</width>
-         <height>32</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Inject Packet</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="listenButton">
-       <property name="geometry">
-        <rect>
-         <x>4</x>
-         <y>56</y>
-         <width>101</width>
-         <height>32</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Listen</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="byteReorderCheckBox">
-       <property name="geometry">
-        <rect>
-         <x>126</x>
-         <y>84</y>
-         <width>101</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Reorder Bytes</string>
-       </property>
-      </widget>
-      <widget class="QComboBox" name="networkInterfaces">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
+         <x>386</x>
          <y>28</y>
-         <width>104</width>
-         <height>26</height>
+         <width>87</width>
+         <height>32</height>
         </rect>
+       </property>
+       <property name="text">
+        <string>Plot</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="recOutputFilename">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>34</y>
+         <width>119</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>dataout.bin</string>
        </property>
       </widget>
       <widget class="QCheckBox" name="pktRecordCheckBox">
        <property name="geometry">
         <rect>
-         <x>4</x>
-         <y>106</y>
+         <x>16</x>
+         <y>60</y>
          <width>101</width>
          <height>20</height>
         </rect>
@@ -1433,12 +1318,28 @@
        <property name="text">
         <string>Save to file</string>
        </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="listenButton">
+       <property name="geometry">
+        <rect>
+         <x>8</x>
+         <y>4</y>
+         <width>131</width>
+         <height>32</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Listen</string>
+       </property>
       </widget>
       <widget class="QLabel" name="label_22">
        <property name="geometry">
         <rect>
-         <x>482</x>
-         <y>102</y>
+         <x>168</x>
+         <y>62</y>
          <width>81</width>
          <height>16</height>
         </rect>
@@ -1447,63 +1348,11 @@
         <string>Output Directory</string>
        </property>
       </widget>
-      <widget class="QLineEdit" name="recOutputDirectory">
-       <property name="geometry">
-        <rect>
-         <x>482</x>
-         <y>122</y>
-         <width>221</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>/Users/sam/outputs/</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_23">
-       <property name="geometry">
-        <rect>
-         <x>336</x>
-         <y>104</y>
-         <width>81</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Output Filename</string>
-       </property>
-      </widget>
-      <widget class="QLineEdit" name="recOutputFilename">
-       <property name="geometry">
-        <rect>
-         <x>336</x>
-         <y>124</y>
-         <width>135</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>dataout.bin</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_24">
-       <property name="geometry">
-        <rect>
-         <x>264</x>
-         <y>102</y>
-         <width>71</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Write Limit</string>
-       </property>
-      </widget>
       <widget class="QSpinBox" name="writeLimit_spinBox">
        <property name="geometry">
         <rect>
-         <x>264</x>
-         <y>122</y>
+         <x>168</x>
+         <y>32</y>
          <width>61</width>
          <height>24</height>
         </rect>
@@ -1518,8 +1367,8 @@
       <widget class="QCheckBox" name="promiscModeCheckBox">
        <property name="geometry">
         <rect>
-         <x>4</x>
-         <y>84</y>
+         <x>16</x>
+         <y>38</y>
          <width>113</width>
          <height>20</height>
         </rect>
@@ -1528,78 +1377,100 @@
         <string>Promiscuous mode</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="plotOutputButton">
+      <widget class="QLineEdit" name="recOutputDirectory">
        <property name="geometry">
         <rect>
-         <x>720</x>
-         <y>116</y>
-         <width>87</width>
-         <height>32</height>
+         <x>168</x>
+         <y>82</y>
+         <width>291</width>
+         <height>21</height>
         </rect>
        </property>
        <property name="text">
-        <string>Plot</string>
+        <string>/Users/sam/outputs/</string>
        </property>
       </widget>
       <widget class="QCheckBox" name="appendInterfaceCheckBox">
        <property name="geometry">
         <rect>
-         <x>4</x>
-         <y>130</y>
-         <width>115</width>
+         <x>16</x>
+         <y>84</y>
+         <width>137</width>
          <height>20</height>
         </rect>
        </property>
        <property name="text">
-        <string>Append interface</string>
+        <string>Append interface name</string>
        </property>
        <property name="checked">
         <bool>true</bool>
        </property>
       </widget>
-      <widget class="QRadioButton" name="injectChirp_radioButton">
+      <widget class="QLabel" name="label_24">
        <property name="geometry">
         <rect>
-         <x>126</x>
-         <y>62</y>
-         <width>51</width>
+         <x>168</x>
+         <y>12</y>
+         <width>71</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Write Limit</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_23">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>14</y>
+         <width>81</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Output Filename</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="decodeCounterCheckBox">
+       <property name="geometry">
+        <rect>
+         <x>482</x>
+         <y>30</y>
+         <width>113</width>
          <height>20</height>
         </rect>
        </property>
        <property name="text">
-        <string>Chirp</string>
+        <string>Decode Counter</string>
        </property>
        <property name="checked">
         <bool>true</bool>
        </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup_3</string>
-       </attribute>
       </widget>
-      <widget class="QRadioButton" name="injectFmc150_radioButton">
+     </widget>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>TX</string>
+      </attribute>
+      <widget class="QPushButton" name="writeButton">
        <property name="geometry">
         <rect>
-         <x>180</x>
-         <y>62</y>
-         <width>65</width>
-         <height>20</height>
+         <x>14</x>
+         <y>10</y>
+         <width>127</width>
+         <height>32</height>
         </rect>
        </property>
        <property name="text">
-        <string>FMC150</string>
+        <string>Inject Packet</string>
        </property>
-       <property name="checked">
-        <bool>false</bool>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup_3</string>
-       </attribute>
       </widget>
       <widget class="QRadioButton" name="injectReadCmd_radioButton">
        <property name="geometry">
         <rect>
-         <x>236</x>
-         <y>40</y>
+         <x>106</x>
+         <y>68</y>
          <width>83</width>
          <height>20</height>
         </rect>
@@ -1614,11 +1485,30 @@
         <string notr="true">buttonGroup_4</string>
        </attribute>
       </widget>
+      <widget class="QRadioButton" name="injectFmc150_radioButton">
+       <property name="geometry">
+        <rect>
+         <x>166</x>
+         <y>28</y>
+         <width>65</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>FMC150</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_3</string>
+       </attribute>
+      </widget>
       <widget class="QRadioButton" name="injectWriteCmd_radioButton">
        <property name="geometry">
         <rect>
-         <x>238</x>
-         <y>12</y>
+         <x>16</x>
+         <y>68</y>
          <width>85</width>
          <height>20</height>
         </rect>
@@ -1633,6 +1523,211 @@
         <string notr="true">buttonGroup_4</string>
        </attribute>
       </widget>
+      <widget class="QCheckBox" name="byteReorderCheckBox">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>42</y>
+         <width>101</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Reorder Bytes</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="injectChirp_radioButton">
+       <property name="geometry">
+        <rect>
+         <x>168</x>
+         <y>6</y>
+         <width>51</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Chirp</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_3</string>
+       </attribute>
+      </widget>
+      <widget class="QRadioButton" name="adc_data_u_radioButton">
+       <property name="geometry">
+        <rect>
+         <x>348</x>
+         <y>32</y>
+         <width>21</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>adc output</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_5</string>
+       </attribute>
+      </widget>
+      <widget class="QRadioButton" name="dac_data_u_radioButton">
+       <property name="geometry">
+        <rect>
+         <x>348</x>
+         <y>52</y>
+         <width>17</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>dac input</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_5</string>
+       </attribute>
+      </widget>
+      <widget class="QRadioButton" name="adc_counter_u_radioButton">
+       <property name="geometry">
+        <rect>
+         <x>348</x>
+         <y>72</y>
+         <width>21</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>adc counter</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_5</string>
+       </attribute>
+      </widget>
+      <widget class="QRadioButton" name="global_counter_u_radioButton">
+       <property name="geometry">
+        <rect>
+         <x>348</x>
+         <y>92</y>
+         <width>21</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>global counter</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_5</string>
+       </attribute>
+      </widget>
+      <widget class="QRadioButton" name="adc_data_l_radioButton">
+       <property name="geometry">
+        <rect>
+         <x>378</x>
+         <y>32</y>
+         <width>100</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>adc output</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_6</string>
+       </attribute>
+      </widget>
+      <widget class="QRadioButton" name="global_counter_l_radioButton">
+       <property name="geometry">
+        <rect>
+         <x>376</x>
+         <y>92</y>
+         <width>100</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>global counter</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_6</string>
+       </attribute>
+      </widget>
+      <widget class="QRadioButton" name="adc_counter_l_radioButton">
+       <property name="geometry">
+        <rect>
+         <x>376</x>
+         <y>72</y>
+         <width>100</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>adc counter</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_6</string>
+       </attribute>
+      </widget>
+      <widget class="QRadioButton" name="dac_data_l_radioButton">
+       <property name="geometry">
+        <rect>
+         <x>378</x>
+         <y>52</y>
+         <width>100</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>dac input</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup_6</string>
+       </attribute>
+      </widget>
+      <widget class="QLabel" name="label_36">
+       <property name="geometry">
+        <rect>
+         <x>326</x>
+         <y>0</y>
+         <width>95</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Data Word Select:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_37">
+       <property name="geometry">
+        <rect>
+         <x>340</x>
+         <y>18</y>
+         <width>39</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Upper</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_38">
+       <property name="geometry">
+        <rect>
+         <x>374</x>
+         <y>18</y>
+         <width>39</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Lower</string>
+       </property>
+      </widget>
      </widget>
      <widget class="QWidget" name="tab_b2">
       <attribute name="title">
@@ -1641,9 +1736,9 @@
       <widget class="QLineEdit" name="inputPcapFilename">
        <property name="geometry">
         <rect>
-         <x>80</x>
-         <y>30</y>
-         <width>491</width>
+         <x>14</x>
+         <y>28</y>
+         <width>303</width>
          <height>21</height>
         </rect>
        </property>
@@ -1654,8 +1749,8 @@
       <widget class="QLineEdit" name="outputPcapFilename">
        <property name="geometry">
         <rect>
-         <x>80</x>
-         <y>80</y>
+         <x>14</x>
+         <y>78</y>
          <width>121</width>
          <height>21</height>
         </rect>
@@ -1667,8 +1762,8 @@
       <widget class="QLineEdit" name="outputDirectory">
        <property name="geometry">
         <rect>
-         <x>230</x>
-         <y>80</y>
+         <x>164</x>
+         <y>78</y>
          <width>181</width>
          <height>21</height>
         </rect>
@@ -1680,8 +1775,8 @@
       <widget class="QPushButton" name="readPcapButton">
        <property name="geometry">
         <rect>
-         <x>480</x>
-         <y>70</y>
+         <x>338</x>
+         <y>22</y>
          <width>113</width>
          <height>32</height>
         </rect>
@@ -1693,8 +1788,8 @@
       <widget class="QLabel" name="label_19">
        <property name="geometry">
         <rect>
-         <x>90</x>
-         <y>10</y>
+         <x>24</x>
+         <y>8</y>
          <width>101</width>
          <height>16</height>
         </rect>
@@ -1706,8 +1801,8 @@
       <widget class="QLabel" name="label_21">
        <property name="geometry">
         <rect>
-         <x>230</x>
-         <y>60</y>
+         <x>164</x>
+         <y>58</y>
          <width>81</width>
          <height>16</height>
         </rect>
@@ -1719,8 +1814,8 @@
       <widget class="QLabel" name="label_20">
        <property name="geometry">
         <rect>
-         <x>80</x>
-         <y>60</y>
+         <x>14</x>
+         <y>58</y>
          <width>81</width>
          <height>16</height>
         </rect>
@@ -1735,6 +1830,121 @@
        <string>...</string>
       </attribute>
      </widget>
+    </widget>
+    <widget class="QLabel" name="label_5">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>198</y>
+       <width>81</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Interface</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="networkInterfaces">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>218</y>
+       <width>109</width>
+       <height>26</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="destIpAddr">
+     <property name="geometry">
+      <rect>
+       <x>122</x>
+       <y>268</y>
+       <width>91</width>
+       <height>21</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>124</x>
+       <y>252</y>
+       <width>59</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Dest IP</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>6</x>
+       <y>250</y>
+       <width>101</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Dest Mac</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="destMacAddr">
+     <property name="geometry">
+      <rect>
+       <x>6</x>
+       <y>268</y>
+       <width>105</width>
+       <height>21</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_2">
+     <property name="geometry">
+      <rect>
+       <x>6</x>
+       <y>290</y>
+       <width>71</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Source Mac</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="srcMacAddr">
+     <property name="geometry">
+      <rect>
+       <x>6</x>
+       <y>308</y>
+       <width>105</width>
+       <height>21</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_4">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>292</y>
+       <width>59</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Source IP</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="srcIpAddr">
+     <property name="geometry">
+      <rect>
+       <x>122</x>
+       <y>308</y>
+       <width>91</width>
+       <height>21</height>
+      </rect>
+     </property>
     </widget>
    </widget>
   </widget>
@@ -1785,5 +1995,7 @@
   <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup_3"/>
   <buttongroup name="buttonGroup_4"/>
+  <buttongroup name="buttonGroup_5"/>
+  <buttongroup name="buttonGroup_6"/>
  </buttongroups>
 </ui>
