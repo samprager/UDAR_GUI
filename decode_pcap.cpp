@@ -95,8 +95,8 @@ int decodeDataPacket(uint32_t **dataU, uint32_t **dataL,unsigned char *packet_da
 //reverse order of 32 bit words for each 512 bit sub-packet
   for (i=0;i<sq_size32;i+=8){
     for (j=0;j<8;j++){
-      memcpy(*dataL+i+j,((uint32_t*)packet_data)+2*i+s_index+counter_offset+14-2*j,sizeof(uint32_t));
-      memcpy(*dataU+i+j,((uint32_t*)packet_data)+2*i+s_index+1-counter_offset+14-2*j,sizeof(uint32_t));
+      memcpy(*dataU+i+j,((uint32_t*)packet_data)+2*i+s_index+counter_offset+14-2*j,sizeof(uint32_t));
+      memcpy(*dataL+i+j,((uint32_t*)packet_data)+2*i+s_index+1-counter_offset+14-2*j,sizeof(uint32_t));
     }
   }
  return sq_size32;

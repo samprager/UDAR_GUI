@@ -115,6 +115,8 @@ public:
     explicit UDAR_Controller(QWidget *parent = 0);
     ~UDAR_Controller();
 
+    void setupDataPlot(QCustomPlot *plot, QPen pen);
+    void setupCounterPlot(QCustomPlot *plot, QPen pen);
     void setupPlotIQ();
     void updateDataPlotIQ();
     void updateFFTPlotIQ();
@@ -123,6 +125,7 @@ public:
     void calculateChirpParams();
     void storeChirpParams();
     void storeFMC150Params();
+    u_char GetRxDataFormat();
 
     void sendCommand(const QString name);
     void sendCommand(const QString name, uint32_t cmd);
@@ -132,6 +135,7 @@ public:
     void read_pcap(int argc, char *argv[], char *outdir);
     void decode_plot(int argc, char *argv[], char *outdir);
 
+
     int fftDataI(double **fftI, uint32_t *dataIQ,int datasize);
     int fftDataQ(double **fftQ, uint32_t *dataIQ,int datasize);
     int fftDataIQ(double **fftIQ, uint32_t *dataIQ,int datasize);
@@ -139,6 +143,7 @@ public:
     void getMacArray(u_char mac[6],QString text);
     void getIpArray(u_char ip[4],QString text);
 
+    void setStatusTranscript(QString text);
     void setTranscript(QString text);
     void setTranscript(char * text);
     void setTranscript(u_char * text);
@@ -155,16 +160,23 @@ private:
     struct fmc150_parameters fmc150_params;
     time_t start_time;
     struct timeval start_tp;
+    QTimer *rx_status_timer;
 
     QVector<double> plotDataI;
     QVector<double> plotDataQ;
     QVector<double> plotDataC;
+    QVector<double> plotDataI2;
+    QVector<double> plotDataQ2;
+    QVector<double> plotDataC2;
     QVector<double> plotTimeVec;
     QVector<double> plotfftI;
     QVector<double> plotfftQ;
+    QVector<double> plotfftI2;
+    QVector<double> plotfftQ2;
     QVector<double> plotfftVec;
     QVector<double> ctrjumpsX;
     QVector<double> ctrjumpsY;
+    QVector<double> ctrjumpsY2;
 
 
 
@@ -174,6 +186,13 @@ private:
 
 private slots:
     void updateInterfaceFields(const QString if_name);
+    void updateRXStatus();
+    void updateDataPlot(QCustomPlot *plot,QVector<double> &dataX,QVector<double> &dataY, int graph_num);
+    void horzScrollBarChanged(QCustomPlot *plot, int value);
+    void vertScrollBarChanged(QCustomPlot *plot, int value);
+    void selectionChanged(QCustomPlot *plot);
+    void mousePress(QCustomPlot *plot);
+    void mouseWheel(QCustomPlot *plot);
 
     void horzScrollBarIChanged(int value);
     void vertScrollBarIChanged(int value);
@@ -213,7 +232,7 @@ private slots:
     void on_printExtBuf_clicked();
     void on_promiscModeCheckBox_stateChanged(int state);
 
-    void fixTranscirptPosition();
+    void fixTranscriptPosition();
 
 
 

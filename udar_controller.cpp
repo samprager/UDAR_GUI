@@ -30,13 +30,26 @@ UDAR_Controller::UDAR_Controller(QWidget *parent) :
     ui->plotI->yAxis->setRange(0, 60, Qt::AlignCenter);
     ui->plotQ->xAxis->setRange(0, 60, Qt::AlignCenter);
     ui->plotQ->yAxis->setRange(0, 60, Qt::AlignCenter);
+
+    ui->plotI2->xAxis->setRange(0, 60, Qt::AlignCenter);
+    ui->plotI2->yAxis->setRange(0, 60, Qt::AlignCenter);
+    ui->plotQ2->xAxis->setRange(0, 60, Qt::AlignCenter);
+    ui->plotQ2->yAxis->setRange(0, 60, Qt::AlignCenter);
+
     ui->plotC->xAxis->setRange(0, 60, Qt::AlignCenter);
     ui->plotC->yAxis->setRange(0, 60, Qt::AlignCenter);
+    ui->plotC2->xAxis->setRange(0, 60, Qt::AlignCenter);
+    ui->plotC2->yAxis->setRange(0, 60, Qt::AlignCenter);
 
     ui->plotFFTI->xAxis->setRange(0, 60, Qt::AlignCenter);
     ui->plotFFTI->yAxis->setRange(70, 140, Qt::AlignCenter);
     ui->plotFFTQ->xAxis->setRange(0, 60, Qt::AlignCenter);
     ui->plotFFTQ->yAxis->setRange(70, 140, Qt::AlignCenter);
+
+    ui->plotFFTI2->xAxis->setRange(0, 60, Qt::AlignCenter);
+    ui->plotFFTI2->yAxis->setRange(70, 140, Qt::AlignCenter);
+    ui->plotFFTQ2->xAxis->setRange(0, 60, Qt::AlignCenter);
+    ui->plotFFTQ2->yAxis->setRange(70, 140, Qt::AlignCenter);
 
     connectSignals();
 
@@ -55,6 +68,11 @@ void UDAR_Controller::connectSignals()
     //connect(ui->tabWidget_a, SIGNAL(currentChanged(int)), this, SLOT(tab_aSelected()));
 
     connect(ui->networkInterfaces,SIGNAL(currentIndexChanged(const QString)),this,SLOT(updateInterfaceFields(const QString)));
+
+    rx_status_timer = new QTimer(this);
+    connect(rx_status_timer, SIGNAL(timeout()), this, SLOT(updateRXStatus()));
+    rx_status_timer->start(1000);
+
     //QMetaObject::connectSlotsByName(this);
 
     // create connection between axes and scroll bars:
@@ -77,6 +95,16 @@ void UDAR_Controller::connectSignals()
     connect(ui->plotI->yAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotI->yAxis2, SLOT(setRange(QCPRange)));
 
     // connect slot that ties some axis selections together (especially opposite axes):
+    connect(ui->plotI2, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChanged()));
+    // connect slots that takes care that when an axis is selected, only that direction can be dragged and zoomed:
+    connect(ui->plotI2, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(mousePress()));
+    connect(ui->plotI2, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(mouseWheel()));
+
+    // make bottom and left axes transfer their ranges to top and right axes:
+    connect(ui->plotI2->xAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotI->xAxis2, SLOT(setRange(QCPRange)));
+    connect(ui->plotI2->yAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotI->yAxis2, SLOT(setRange(QCPRange)));
+
+    // connect slot that ties some axis selections together (especially opposite axes):
     connect(ui->plotQ, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChanged()));
     // connect slots that takes care that when an axis is selected, only that direction can be dragged and zoomed:
     connect(ui->plotQ, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(mousePress()));
@@ -87,6 +115,17 @@ void UDAR_Controller::connectSignals()
     connect(ui->plotQ->yAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotQ->yAxis2, SLOT(setRange(QCPRange)));
 
     // connect slot that ties some axis selections together (especially opposite axes):
+    connect(ui->plotQ2, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChanged()));
+    // connect slots that takes care that when an axis is selected, only that direction can be dragged and zoomed:
+    connect(ui->plotQ2, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(mousePress()));
+    connect(ui->plotQ2, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(mouseWheel()));
+
+    // make bottom and left axes transfer their ranges to top and right axes:
+    connect(ui->plotQ2->xAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotQ->xAxis2, SLOT(setRange(QCPRange)));
+    connect(ui->plotQ2->yAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotQ->yAxis2, SLOT(setRange(QCPRange)));
+
+
+    // connect slot that ties some axis selections together (especially opposite axes):
     connect(ui->plotC, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChanged()));
     // connect slots that takes care that when an axis is selected, only that direction can be dragged and zoomed:
     connect(ui->plotC, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(mousePress()));
@@ -95,6 +134,16 @@ void UDAR_Controller::connectSignals()
     // make bottom and left axes transfer their ranges to top and right axes:
     connect(ui->plotC->xAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotC->xAxis2, SLOT(setRange(QCPRange)));
     connect(ui->plotC->yAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotC->yAxis2, SLOT(setRange(QCPRange)));
+
+    // connect slot that ties some axis selections together (especially opposite axes):
+    connect(ui->plotC2, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChanged()));
+    // connect slots that takes care that when an axis is selected, only that direction can be dragged and zoomed:
+    connect(ui->plotC2, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(mousePress()));
+    connect(ui->plotC2, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(mouseWheel()));
+
+    // make bottom and left axes transfer their ranges to top and right axes:
+    connect(ui->plotC2->xAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotC2->xAxis2, SLOT(setRange(QCPRange)));
+    connect(ui->plotC2->yAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotC2->yAxis2, SLOT(setRange(QCPRange)));
 
 
     // connect slot that ties some axis selections together (especially opposite axes):
@@ -116,6 +165,26 @@ void UDAR_Controller::connectSignals()
     // make bottom and left axes transfer their ranges to top and right axes:
     connect(ui->plotFFTQ->xAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotFFTQ->xAxis2, SLOT(setRange(QCPRange)));
     connect(ui->plotFFTQ->yAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotFFTQ->yAxis2, SLOT(setRange(QCPRange)));
+
+    // connect slot that ties some axis selections together (especially opposite axes):
+    connect(ui->plotFFTI2, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChanged()));
+    // connect slots that takes care that when an axis is selected, only that direction can be dragged and zoomed:
+    connect(ui->plotFFTI2, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(mousePress()));
+    connect(ui->plotFFTI2, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(mouseWheel()));
+
+    // make bottom and left axes transfer their ranges to top and right axes:
+    connect(ui->plotFFTI2->xAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotFFTI2->xAxis2, SLOT(setRange(QCPRange)));
+    connect(ui->plotFFTI2->yAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotFFTI2->yAxis2, SLOT(setRange(QCPRange)));
+
+    // connect slot that ties some axis selections together (especially opposite axes):
+    connect(ui->plotFFTQ2, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChanged()));
+    // connect slots that takes care that when an axis is selected, only that direction can be dragged and zoomed:
+    connect(ui->plotFFTQ2, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(mousePress()));
+    connect(ui->plotFFTQ2, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(mouseWheel()));
+
+    // make bottom and left axes transfer their ranges to top and right axes:
+    connect(ui->plotFFTQ2->xAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotFFTQ2->xAxis2, SLOT(setRange(QCPRange)));
+    connect(ui->plotFFTQ2->yAxis, SIGNAL(rangeChanged(QCPRange)), ui->plotFFTQ2->yAxis2, SLOT(setRange(QCPRange)));
 }
 
 
@@ -123,6 +192,7 @@ void UDAR_Controller::controllerInit()
 {
     time(&start_time);
     gettimeofday(&start_tp, NULL);
+
 
     interfaceNames = getNetworkInterfaces();
     ui->networkInterfaces->addItems(interfaceNames);
@@ -164,141 +234,96 @@ void UDAR_Controller::controllerInit()
 
     ui->transcript->setText("Initialization Complete...Controller Ready");
 
+
 }
 
+void UDAR_Controller::setupDataPlot(QCustomPlot *plot, QPen pen){
+
+    // The following plot setup is mostly taken from the plot demos:
+
+    plot->addGraph();
+  //  plot->graph()->setPen(QPen(Qt::blue));
+    plot->graph()->setPen(pen);
+    plot->xAxis->setTicks(true);
+    plot->xAxis->setTickLabels(true);
+    plot->xAxis->setTickLabelFont(QFont(QFont().family(), 9));
+    plot->yAxis->setTicks(true);
+    plot->yAxis->setTickLabels(true);
+    plot->yAxis->setTickLabelFont(QFont(QFont().family(), 9));
+
+    plot->axisRect()->setupFullAxesBox(true);
+   // plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+    plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
+                                    QCP::iSelectLegend | QCP::iSelectPlottables);
+}
+
+void UDAR_Controller::setupCounterPlot(QCustomPlot *plot, QPen pen){
+
+    // The following plot setup is mostly taken from the plot demos:
+    plot->addGraph();
+    plot->graph()->setPen(QPen(Qt::green));
+    plot->xAxis->setTicks(true);
+    plot->xAxis->setTickLabels(true);
+    plot->xAxis->setTickLabelFont(QFont(QFont().family(), 9));
+    plot->yAxis->setTicks(true);
+    plot->yAxis->setTickLabels(true);
+    plot->yAxis->setTickLabelFont(QFont(QFont().family(), 9));
+
+    plot->addGraph();
+    plot->graph()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, QPen(Qt::black, 1.5), QBrush(Qt::white), 5));
+    plot->graph()->setLineStyle(QCPGraph::lsNone);
+    plot->graph()->setPen(QPen(QColor(120, 120, 120), 2));
+
+
+    plot->axisRect()->setupFullAxesBox(true);
+    //plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+    plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
+                                    QCP::iSelectLegend | QCP::iSelectPlottables);
+}
+
+
 void UDAR_Controller::setupPlotIQ(){
-  // The following plot setup is mostly taken from the plot demos:
-  ui->plotI->addGraph();
-  ui->plotI->graph()->setPen(QPen(Qt::blue));
-  ui->plotI->xAxis->setTicks(true);
-  ui->plotI->xAxis->setTickLabels(true);
-  ui->plotI->xAxis->setTickLabelFont(QFont(QFont().family(), 9));
-  ui->plotI->yAxis->setTicks(true);
-  ui->plotI->yAxis->setTickLabels(true);
-  ui->plotI->yAxis->setTickLabelFont(QFont(QFont().family(), 9));
+    setupDataPlot(ui->plotI,QPen(Qt::blue));
+    setupDataPlot(ui->plotQ,QPen(Qt::red));
+    setupDataPlot(ui->plotI2,QPen(Qt::blue));
+    setupDataPlot(ui->plotQ2,QPen(Qt::red));
+    setupDataPlot(ui->plotFFTI,QPen(Qt::blue));
+    setupDataPlot(ui->plotFFTQ,QPen(Qt::red));
+    setupDataPlot(ui->plotFFTI2,QPen(Qt::blue));
+    setupDataPlot(ui->plotFFTQ2,QPen(Qt::red));
 
-  //ui->plot->graph()->setBrush(QBrush(QColor(0, 0, 255, 20)));
-  ui->plotQ->addGraph();
-  ui->plotQ->graph()->setPen(QPen(Qt::red));
-  ui->plotQ->xAxis->setTicks(true);
-  ui->plotQ->xAxis->setTickLabels(true);
-  ui->plotQ->xAxis->setTickLabelFont(QFont(QFont().family(), 9));
-  ui->plotQ->yAxis->setTicks(true);
-  ui->plotQ->yAxis->setTickLabels(true);
-  ui->plotQ->yAxis->setTickLabelFont(QFont(QFont().family(), 9));
+    setupCounterPlot(ui->plotC,QPen(Qt::green));
+    setupCounterPlot(ui->plotC2,QPen(Qt::green));
 
-  ui->plotC->addGraph();
-  ui->plotC->graph()->setPen(QPen(Qt::green));
-  ui->plotC->xAxis->setTicks(true);
-  ui->plotC->xAxis->setTickLabels(true);
-  ui->plotC->xAxis->setTickLabelFont(QFont(QFont().family(), 9));
-  ui->plotC->yAxis->setTicks(true);
-  ui->plotC->yAxis->setTickLabels(true);
-  ui->plotC->yAxis->setTickLabelFont(QFont(QFont().family(), 9));
+}
+void UDAR_Controller::updateDataPlot(QCustomPlot *plot,QVector<double> &dataX,QVector<double> &dataY,int graph_num){
+    plot->graph(graph_num)->setData(dataX, dataY);
+    plot->graph(graph_num)->rescaleAxes();
 
-  ui->plotC->addGraph();
-  ui->plotC->graph()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, QPen(Qt::black, 1.5), QBrush(Qt::white), 5));
-  ui->plotC->graph()->setLineStyle(QCPGraph::lsNone);
-  ui->plotC->graph()->setPen(QPen(QColor(120, 120, 120), 2));
-
-
-  ui->plotFFTI->addGraph();
-  ui->plotFFTI->graph()->setPen(QPen(Qt::blue));
-  ui->plotFFTI->xAxis->setTicks(true);
-  ui->plotFFTI->xAxis->setTickLabels(true);
-  ui->plotFFTI->xAxis->setTickLabelFont(QFont(QFont().family(), 9));
-  ui->plotFFTI->yAxis->setTicks(true);
-  ui->plotFFTI->yAxis->setTickLabels(true);
-  ui->plotFFTI->yAxis->setTickLabelFont(QFont(QFont().family(), 9));
-
-  ui->plotFFTQ->addGraph();
-  ui->plotFFTQ->graph()->setPen(QPen(Qt::red));
-  ui->plotFFTQ->xAxis->setTicks(true);
-  ui->plotFFTQ->xAxis->setTickLabels(true);
-  ui->plotFFTQ->xAxis->setTickLabelFont(QFont(QFont().family(), 9));
-  ui->plotFFTQ->yAxis->setTicks(true);
-  ui->plotFFTQ->yAxis->setTickLabels(true);
-  ui->plotFFTQ->yAxis->setTickLabelFont(QFont(QFont().family(), 9));
-
-
-//  ui->plot->xAxis->setVisible(true);
-//  ui->plot->xAxis->setTickLabels(true);
-//  ui->plot->yAxis->setVisible(true);
-//  ui->plot->yAxis->setTickLabels(true);
-
-
-  ui->plotI->axisRect()->setupFullAxesBox(true);
- // ui->plotI->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-  ui->plotI->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
-                                  QCP::iSelectLegend | QCP::iSelectPlottables);
-  ui->plotQ->axisRect()->setupFullAxesBox(true);
-  //ui->plotQ->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-  ui->plotQ->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
-                                  QCP::iSelectLegend | QCP::iSelectPlottables);
-  ui->plotC->axisRect()->setupFullAxesBox(true);
-  //ui->plotC->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-  ui->plotC->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
-                                  QCP::iSelectLegend | QCP::iSelectPlottables);
-
-  ui->plotFFTI->axisRect()->setupFullAxesBox(true);
-  //ui->plotFFTI->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-  ui->plotFFTI->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
-                                  QCP::iSelectLegend | QCP::iSelectPlottables);
-  ui->plotFFTQ->axisRect()->setupFullAxesBox(true);
-  //ui->plotFFTQ->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-  ui->plotFFTQ->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
-                                  QCP::iSelectLegend | QCP::iSelectPlottables);
-
-
+    plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
+                                    QCP::iSelectLegend | QCP::iSelectPlottables);
+    plot->replot();
 }
 
 void UDAR_Controller::updateDataPlotIQ(){
-    ui->plotI->graph(0)->setData(plotTimeVec, plotDataI);
-    ui->plotI->graph(0)->rescaleAxes();
-    ui->plotQ->graph(0)->setData(plotTimeVec, plotDataQ);
-    ui->plotQ->graph(0)->rescaleAxes();
-    ui->plotC->graph(0)->setData(plotTimeVec, plotDataC);
-    ui->plotC->graph(0)->rescaleAxes();
-    ui->plotC->graph(1)->setData(ctrjumpsX, ctrjumpsY);
-    ui->plotC->graph(1)->rescaleAxes();
-
-   // ui->plot->graph(1)->setData(plotTimeVec, plotDataQ);
-   // ui->plot->graph(1)->rescaleAxes(true);
-    //ui->plot->graph(1)->setData(plotTimeVec, plotDataQ);
-  //  ui->plot->xAxis->setRange(.5*plotTimeVec.last(),plotTimeVec.last()-plotTimeVec.first(), Qt::AlignCenter);
- //   ui->plot->yAxis->setRange(0, 100.0, Qt::AlignCenter);
-   // ui->plot->axisRect()->setupFullAxesBox(true);
-
-    //ui->plotI->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-    ui->plotI->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
-                                    QCP::iSelectLegend | QCP::iSelectPlottables);
-    ui->plotI->replot();
-    //ui->plotQ->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-    ui->plotQ->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
-                                    QCP::iSelectLegend | QCP::iSelectPlottables);
-    ui->plotQ->replot();
-    //ui->plotC->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-    ui->plotC->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
-                                    QCP::iSelectLegend | QCP::iSelectPlottables);
-    ui->plotC->replot();
+    updateDataPlot(ui->plotI,plotTimeVec,plotDataI,0);
+    updateDataPlot(ui->plotQ,plotTimeVec,plotDataQ,0);
+    updateDataPlot(ui->plotI2,plotTimeVec,plotDataI2,0);
+    updateDataPlot(ui->plotQ2,plotTimeVec,plotDataQ2,0);
+    updateDataPlot(ui->plotC,plotTimeVec,plotDataC,0);
+    updateDataPlot(ui->plotC,ctrjumpsX,ctrjumpsY,1);
+    updateDataPlot(ui->plotC2,plotTimeVec,plotDataC2,0);
+    updateDataPlot(ui->plotC2,ctrjumpsX,ctrjumpsY2,1);
 }
 
 void UDAR_Controller::updateFFTPlotIQ(){
-    ui->plotFFTI->graph(0)->setData(plotfftVec, plotfftI);
-    ui->plotFFTI->graph(0)->rescaleAxes();
-    ui->plotFFTQ->graph(0)->setData(plotfftVec, plotfftQ);
-    ui->plotFFTQ->graph(0)->rescaleAxes();
-
-    ui->plotFFTI->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
-                                    QCP::iSelectLegend | QCP::iSelectPlottables);
-    ui->plotFFTI->replot();
-    ui->plotFFTQ->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
-                                    QCP::iSelectLegend | QCP::iSelectPlottables);
-    ui->plotFFTQ->replot();
-
+    updateDataPlot(ui->plotFFTI,plotfftVec,plotfftI,0);
+    updateDataPlot(ui->plotFFTQ,plotfftVec,plotfftQ,0);
+    updateDataPlot(ui->plotFFTI2,plotfftVec,plotfftI2,0);
+    updateDataPlot(ui->plotFFTQ2,plotfftVec,plotfftQ2,0);
 }
 
-void UDAR_Controller::selectionChanged()
+void UDAR_Controller::selectionChanged(QCustomPlot *plot)
 {
   /*
    normally, axis base line, axis tick labels and axis labels are selectable separately, but we want
@@ -314,126 +339,81 @@ void UDAR_Controller::selectionChanged()
   */
 
   // make top and bottom axes be selected synchronously, and handle axis and tick labels as one selectable object:
-  if (ui->plotI->xAxis->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotI->xAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
-      ui->plotI->xAxis2->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotI->xAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
+  if (plot->xAxis->selectedParts().testFlag(QCPAxis::spAxis) || plot->xAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
+      plot->xAxis2->selectedParts().testFlag(QCPAxis::spAxis) || plot->xAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
   {
-    ui->plotI->xAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-    ui->plotI->xAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
+    plot->xAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
+    plot->xAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
   }
   // make left and right axes be selected synchronously, and handle axis and tick labels as one selectable object:
-  if (ui->plotI->yAxis->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotI->yAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
-      ui->plotI->yAxis2->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotI->yAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
+  if (plot->yAxis->selectedParts().testFlag(QCPAxis::spAxis) || plot->yAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
+      plot->yAxis2->selectedParts().testFlag(QCPAxis::spAxis) || plot->yAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
   {
-    ui->plotI->yAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-    ui->plotI->yAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
+    plot->yAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
+    plot->yAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
 
-  }
-
-  // make top and bottom axes be selected synchronously, and handle axis and tick labels as one selectable object:
-  if (ui->plotQ->xAxis->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotQ->xAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
-      ui->plotQ->xAxis2->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotQ->xAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
-  {
-    ui->plotQ->xAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-    ui->plotQ->xAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-  }
-  // make left and right axes be selected synchronously, and handle axis and tick labels as one selectable object:
-  if (ui->plotQ->yAxis->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotQ->yAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
-      ui->plotQ->yAxis2->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotQ->yAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
-  {
-    ui->plotQ->yAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-    ui->plotQ->yAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-  }
-
-  // make top and bottom axes be selected synchronously, and handle axis and tick labels as one selectable object:
-  if (ui->plotC->xAxis->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotC->xAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
-      ui->plotC->xAxis2->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotC->xAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
-  {
-    ui->plotC->xAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-    ui->plotC->xAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-  }
-  // make left and right axes be selected synchronously, and handle axis and tick labels as one selectable object:
-  if (ui->plotC->yAxis->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotC->yAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
-      ui->plotC->yAxis2->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotC->yAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
-  {
-    ui->plotC->yAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-    ui->plotC->yAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-  }
-
-
-  // make top and bottom axes be selected synchronously, and handle axis and tick labels as one selectable object:
-  if (ui->plotFFTI->xAxis->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotFFTI->xAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
-      ui->plotFFTI->xAxis2->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotFFTI->xAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
-  {
-    ui->plotFFTI->xAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-    ui->plotFFTI->xAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-  }
-  // make left and right axes be selected synchronously, and handle axis and tick labels as one selectable object:
-  if (ui->plotFFTI->yAxis->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotFFTI->yAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
-      ui->plotFFTI->yAxis2->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotFFTI->yAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
-  {
-    ui->plotFFTI->yAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-    ui->plotFFTI->yAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-  }
-
-  // make top and bottom axes be selected synchronously, and handle axis and tick labels as one selectable object:
-  if (ui->plotFFTQ->xAxis->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotFFTQ->xAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
-      ui->plotFFTQ->xAxis2->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotFFTQ->xAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
-  {
-    ui->plotFFTQ->xAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-    ui->plotFFTQ->xAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-  }
-  // make left and right axes be selected synchronously, and handle axis and tick labels as one selectable object:
-  if (ui->plotFFTQ->yAxis->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotFFTQ->yAxis->selectedParts().testFlag(QCPAxis::spTickLabels) ||
-      ui->plotFFTQ->yAxis2->selectedParts().testFlag(QCPAxis::spAxis) || ui->plotFFTQ->yAxis2->selectedParts().testFlag(QCPAxis::spTickLabels))
-  {
-    ui->plotFFTQ->yAxis2->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
-    ui->plotFFTQ->yAxis->setSelectedParts(QCPAxis::spAxis|QCPAxis::spTickLabels);
   }
 }
+void UDAR_Controller::selectionChanged()
+{
+    selectionChanged(ui->plotI);
+    selectionChanged(ui->plotQ);
+    selectionChanged(ui->plotI2);
+    selectionChanged(ui->plotQ2);
+    selectionChanged(ui->plotC);
+    selectionChanged(ui->plotC2);
+    selectionChanged(ui->plotFFTI);
+    selectionChanged(ui->plotFFTQ);
+    selectionChanged(ui->plotFFTI2);
+    selectionChanged(ui->plotFFTQ2);
 
+}
+
+void UDAR_Controller::mousePress(QCustomPlot *plot)
+{
+  // if an axis is selected, only allow the direction of that axis to be dragged
+  // if no axis is selected, both directions may be dragged
+
+  if (plot->xAxis->selectedParts().testFlag(QCPAxis::spAxis)){
+    plot->axisRect()->setRangeDrag(plot->xAxis->orientation());
+  }
+  else if (plot->yAxis->selectedParts().testFlag(QCPAxis::spAxis)){
+    plot->axisRect()->setRangeDrag(plot->yAxis->orientation());
+  }
+  else{
+    plot->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
+  }
+}
 void UDAR_Controller::mousePress()
 {
   // if an axis is selected, only allow the direction of that axis to be dragged
   // if no axis is selected, both directions may be dragged
 
-  if (ui->plotI->xAxis->selectedParts().testFlag(QCPAxis::spAxis)){
-    ui->plotI->axisRect()->setRangeDrag(ui->plotI->xAxis->orientation());
-  }
-  else if (ui->plotI->yAxis->selectedParts().testFlag(QCPAxis::spAxis)){
-    ui->plotI->axisRect()->setRangeDrag(ui->plotI->yAxis->orientation());
-  }
-  else{
-    ui->plotI->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
-  }
+    mousePress(ui->plotI);
+    mousePress(ui->plotQ);
+    mousePress(ui->plotI2);
+    mousePress(ui->plotQ2);
+    mousePress(ui->plotC);
+    mousePress(ui->plotC2);
+    mousePress(ui->plotFFTI);
+    mousePress(ui->plotFFTQ);
+    mousePress(ui->plotFFTI2);
+    mousePress(ui->plotFFTQ2);
 
-  if (ui->plotQ->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    ui->plotQ->axisRect()->setRangeDrag(ui->plotQ->xAxis->orientation());
-  else if (ui->plotQ->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    ui->plotQ->axisRect()->setRangeDrag(ui->plotQ->yAxis->orientation());
+
+}
+
+void UDAR_Controller::mouseWheel(QCustomPlot *plot)
+{
+  // if an axis is selected, only allow the direction of that axis to be zoomed
+  // if no axis is selected, both directions may be zoomed
+
+  if (plot->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
+    plot->axisRect()->setRangeZoom(plot->xAxis->orientation());
+  else if (plot->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
+    plot->axisRect()->setRangeZoom(plot->yAxis->orientation());
   else
-    ui->plotQ->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
-
-  if (ui->plotC->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    ui->plotC->axisRect()->setRangeDrag(ui->plotC->xAxis->orientation());
-  else if (ui->plotC->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    ui->plotC->axisRect()->setRangeDrag(ui->plotC->yAxis->orientation());
-  else
-    ui->plotC->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
-
-
-  if (ui->plotFFTI->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    ui->plotFFTI->axisRect()->setRangeDrag(ui->plotFFTI->xAxis->orientation());
-  else if (ui->plotFFTI->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    ui->plotFFTI->axisRect()->setRangeDrag(ui->plotFFTI->yAxis->orientation());
-  else
-    ui->plotFFTI->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
-
-  if (ui->plotFFTQ->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    ui->plotFFTQ->axisRect()->setRangeDrag(ui->plotFFTQ->xAxis->orientation());
-  else if (ui->plotFFTQ->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    ui->plotFFTQ->axisRect()->setRangeDrag(ui->plotFFTQ->yAxis->orientation());
-  else
-    ui->plotFFTQ->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
+    plot->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
 }
 
 void UDAR_Controller::mouseWheel()
@@ -441,122 +421,77 @@ void UDAR_Controller::mouseWheel()
   // if an axis is selected, only allow the direction of that axis to be zoomed
   // if no axis is selected, both directions may be zoomed
 
-  if (ui->plotI->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    ui->plotI->axisRect()->setRangeZoom(ui->plotI->xAxis->orientation());
-  else if (ui->plotI->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    ui->plotI->axisRect()->setRangeZoom(ui->plotI->yAxis->orientation());
-  else
-    ui->plotI->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
+    mouseWheel(ui->plotI);
+    mouseWheel(ui->plotQ);
+    mouseWheel(ui->plotI2);
+    mouseWheel(ui->plotQ2);
+    mouseWheel(ui->plotC);
+    mouseWheel(ui->plotC2);
+    mouseWheel(ui->plotFFTI);
+    mouseWheel(ui->plotFFTQ);
+    mouseWheel(ui->plotFFTI2);
+    mouseWheel(ui->plotFFTQ2);
 
-  if (ui->plotQ->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    ui->plotQ->axisRect()->setRangeZoom(ui->plotQ->xAxis->orientation());
-  else if (ui->plotQ->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    ui->plotQ->axisRect()->setRangeZoom(ui->plotQ->yAxis->orientation());
-  else
-    ui->plotQ->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
 
-  if (ui->plotC->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    ui->plotC->axisRect()->setRangeZoom(ui->plotC->xAxis->orientation());
-  else if (ui->plotC->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    ui->plotC->axisRect()->setRangeZoom(ui->plotC->yAxis->orientation());
-  else
-    ui->plotC->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
+}
 
-  if (ui->plotFFTI->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    ui->plotFFTI->axisRect()->setRangeZoom(ui->plotFFTI->xAxis->orientation());
-  else if (ui->plotFFTI->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    ui->plotFFTI->axisRect()->setRangeZoom(ui->plotFFTI->yAxis->orientation());
-  else
-    ui->plotFFTI->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
-
-  if (ui->plotFFTQ->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    ui->plotFFTQ->axisRect()->setRangeZoom(ui->plotFFTQ->xAxis->orientation());
-  else if (ui->plotFFTQ->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
-    ui->plotFFTQ->axisRect()->setRangeZoom(ui->plotFFTQ->yAxis->orientation());
-  else
-    ui->plotFFTQ->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
+void UDAR_Controller::horzScrollBarChanged(QCustomPlot *plot,int value)
+{
+  if (qAbs(plot->xAxis->range().center()-value/100.0) > 0.01) // if user is dragging plot, we don't want to replot twice
+  {
+    plot->xAxis->setRange(value/100.0, plot->xAxis->range().size(), Qt::AlignCenter);
+    plot->replot();
+  }
+}
+void UDAR_Controller::vertScrollBarChanged(QCustomPlot *plot, int value)
+{
+  if (qAbs(plot->yAxis->range().center()+value/100.0) > 0.01) // if user is dragging plot, we don't want to replot twice
+  {
+    plot->yAxis->setRange(-value/100.0, plot->yAxis->range().size(), Qt::AlignCenter);
+    plot->replot();
+  }
 }
 
 void UDAR_Controller::horzScrollBarIChanged(int value)
 {
-  if (qAbs(ui->plotI->xAxis->range().center()-value/100.0) > 0.01) // if user is dragging plot, we don't want to replot twice
-  {
-    ui->plotI->xAxis->setRange(value/100.0, ui->plotI->xAxis->range().size(), Qt::AlignCenter);
-    ui->plotI->replot();
-  }
+  horzScrollBarChanged(ui->plotI,value);
 }
 void UDAR_Controller::horzScrollBarQChanged(int value)
 {
-  if (qAbs(ui->plotQ->xAxis->range().center()-value/100.0) > 0.01) // if user is dragging plot, we don't want to replot twice
-  {
-    ui->plotQ->xAxis->setRange(value/100.0, ui->plotQ->xAxis->range().size(), Qt::AlignCenter);
-    ui->plotQ->replot();
-  }
+  horzScrollBarChanged(ui->plotQ,value);
 }
 void UDAR_Controller::horzScrollBarCChanged(int value)
 {
-  if (qAbs(ui->plotC->xAxis->range().center()-value/100.0) > 0.01) // if user is dragging plot, we don't want to replot twice
-  {
-    ui->plotC->xAxis->setRange(value/100.0, ui->plotC->xAxis->range().size(), Qt::AlignCenter);
-    ui->plotC->replot();
-  }
+  horzScrollBarChanged(ui->plotC,value);
 }
 void UDAR_Controller::horzScrollBarFFTIChanged(int value)
 {
-  if (qAbs(ui->plotFFTI->xAxis->range().center()-value/100.0) > 0.01) // if user is dragging plot, we don't want to replot twice
-  {
-    ui->plotFFTI->xAxis->setRange(value/100.0, ui->plotFFTI->xAxis->range().size(), Qt::AlignCenter);
-    ui->plotFFTI->replot();
-  }
+  horzScrollBarChanged(ui->plotFFTI,value);
 }
 void UDAR_Controller::horzScrollBarFFTQChanged(int value)
 {
-  if (qAbs(ui->plotFFTQ->xAxis->range().center()-value/100.0) > 0.01) // if user is dragging plot, we don't want to replot twice
-  {
-    ui->plotFFTQ->xAxis->setRange(value/100.0, ui->plotFFTQ->xAxis->range().size(), Qt::AlignCenter);
-    ui->plotFFTQ->replot();
-  }
+  horzScrollBarChanged(ui->plotFFTQ,value);
 }
 
 void UDAR_Controller::vertScrollBarIChanged(int value)
 {
-  if (qAbs(ui->plotI->yAxis->range().center()+value/100.0) > 0.01) // if user is dragging plot, we don't want to replot twice
-  {
-    ui->plotI->yAxis->setRange(-value/100.0, ui->plotI->yAxis->range().size(), Qt::AlignCenter);
-    ui->plotI->replot();
-  }
+  vertScrollBarChanged(ui->plotI,value);
 }
 void UDAR_Controller::vertScrollBarQChanged(int value)
 {
-  if (qAbs(ui->plotQ->yAxis->range().center()+value/100.0) > 0.01) // if user is dragging plot, we don't want to replot twice
-  {
-    ui->plotQ->yAxis->setRange(-value/100.0, ui->plotQ->yAxis->range().size(), Qt::AlignCenter);
-    ui->plotQ->replot();
-  }
+  vertScrollBarChanged(ui->plotQ,value);
 }
 void UDAR_Controller::vertScrollBarCChanged(int value)
 {
-  if (qAbs(ui->plotC->yAxis->range().center()+value/100.0) > 0.01) // if user is dragging plot, we don't want to replot twice
-  {
-    ui->plotC->yAxis->setRange(-value/100.0, ui->plotC->yAxis->range().size(), Qt::AlignCenter);
-    ui->plotC->replot();
-  }
+  vertScrollBarChanged(ui->plotC,value);
 }
 void UDAR_Controller::vertScrollBarFFTIChanged(int value)
 {
-  if (qAbs(ui->plotFFTI->yAxis->range().center()+value/100.0) > 0.01) // if user is dragging plot, we don't want to replot twice
-  {
-    ui->plotFFTI->yAxis->setRange(-value/100.0, ui->plotFFTI->yAxis->range().size(), Qt::AlignCenter);
-    ui->plotFFTI->replot();
-  }
+  vertScrollBarChanged(ui->plotFFTI,value);
 }
 void UDAR_Controller::vertScrollBarFFTQChanged(int value)
 {
-  if (qAbs(ui->plotFFTQ->yAxis->range().center()+value/100.0) > 0.01) // if user is dragging plot, we don't want to replot twice
-  {
-    ui->plotFFTQ->yAxis->setRange(-value/100.0, ui->plotFFTQ->yAxis->range().size(), Qt::AlignCenter);
-    ui->plotFFTQ->replot();
-  }
+  vertScrollBarChanged(ui->plotFFTQ,value);
 }
 
 void UDAR_Controller::xAxisIChanged(QCPRange range)
@@ -571,6 +506,26 @@ void UDAR_Controller::yAxisIChanged(QCPRange range)
   ui->verticalScrollBarI->setPageStep(qRound(range.size()*100.0)); // adjust size of scroll bar slider
 }
 
+
+
+u_char UDAR_Controller::GetRxDataFormat(){
+    u_char select_adc_l = (u_char)ui->adc_data_l_radioButton->isChecked();
+    u_char select_dac_l = (u_char)ui->dac_data_l_radioButton->isChecked();
+    u_char select_adc_ctr_l = (u_char)ui->adc_counter_l_radioButton->isChecked();
+    u_char select_glbl_ctr_l = (u_char)ui->global_counter_l_radioButton->isChecked();
+    u_char select_adc_u = (u_char)ui->adc_data_u_radioButton->isChecked();
+    u_char select_dac_u = (u_char)ui->dac_data_u_radioButton->isChecked();
+    u_char select_adc_ctr_u = (u_char)ui->adc_counter_u_radioButton->isChecked();
+    u_char select_glbl_ctr_u = (u_char)ui->global_counter_u_radioButton->isChecked();
+
+    uint32_t select_data_l = 0*select_adc_l + select_dac_l + 2*select_adc_ctr_l + 3*select_glbl_ctr_l;
+    uint32_t select_data_u = 0*select_adc_u + select_dac_u + 2*select_adc_ctr_u + 3*select_glbl_ctr_u;
+    uint32_t select_data = (select_data_l & 0x0F) + ((select_data_u<<4) & 0xF0);
+
+    u_char dataformat = (u_char)(select_data & 0x000000FF);
+
+    return dataformat;
+}
 
 
 
@@ -598,20 +553,22 @@ void UDAR_Controller::storeChirpParams(){
     chirp_params.tuning_word = (uint32_t)ui->chirpTuningWord_spinBox->value();
     chirp_params.num_samples = (uint32_t)ui->numSamples_spinBox->value();
 
-    u_char select_adc_l = (u_char)ui->adc_data_l_radioButton->isChecked();
-    u_char select_dac_l = (u_char)ui->dac_data_l_radioButton->isChecked();
-    u_char select_adc_ctr_l = (u_char)ui->adc_counter_l_radioButton->isChecked();
-    u_char select_glbl_ctr_l = (u_char)ui->global_counter_l_radioButton->isChecked();
-    u_char select_adc_u = (u_char)ui->adc_data_u_radioButton->isChecked();
-    u_char select_dac_u = (u_char)ui->dac_data_u_radioButton->isChecked();
-    u_char select_adc_ctr_u = (u_char)ui->adc_counter_u_radioButton->isChecked();
-    u_char select_glbl_ctr_u = (u_char)ui->global_counter_u_radioButton->isChecked();
+//    u_char select_adc_l = (u_char)ui->adc_data_l_radioButton->isChecked();
+//    u_char select_dac_l = (u_char)ui->dac_data_l_radioButton->isChecked();
+//    u_char select_adc_ctr_l = (u_char)ui->adc_counter_l_radioButton->isChecked();
+//    u_char select_glbl_ctr_l = (u_char)ui->global_counter_l_radioButton->isChecked();
+//    u_char select_adc_u = (u_char)ui->adc_data_u_radioButton->isChecked();
+//    u_char select_dac_u = (u_char)ui->dac_data_u_radioButton->isChecked();
+//    u_char select_adc_ctr_u = (u_char)ui->adc_counter_u_radioButton->isChecked();
+//    u_char select_glbl_ctr_u = (u_char)ui->global_counter_u_radioButton->isChecked();
 
-    uint32_t select_data_l = 0*select_adc_l + select_dac_l + 2*select_adc_ctr_l + 3*select_glbl_ctr_l;
-    uint32_t select_data_u = 0*select_adc_u + select_dac_u + 2*select_adc_ctr_u + 3*select_glbl_ctr_u;
-    uint32_t select_data = (select_data_l & 0x0F) + ((select_data_u<<4) & 0xF0);
+//    uint32_t select_data_l = 0*select_adc_l + select_dac_l + 2*select_adc_ctr_l + 3*select_glbl_ctr_l;
+//    uint32_t select_data_u = 0*select_adc_u + select_dac_u + 2*select_adc_ctr_u + 3*select_glbl_ctr_u;
+//    uint32_t select_data = (select_data_l & 0x0F) + ((select_data_u<<4) & 0xF0);
 
-    chirp_params.control_word = (uint32_t)(select_data & 0x000000FF);
+//    chirp_params.control_word = (uint32_t)(select_data & 0x000000FF);
+  //  u_char dataformat = GetRxDataFormat() ;
+     chirp_params.control_word = (uint32_t)(GetRxDataFormat() & 0x000000FF);
     //chirp_params.control_word = (uint32_t)ui->dacLoopback_checkBox->isChecked();
 }
 void UDAR_Controller::storeFMC150Params(){
@@ -1314,6 +1271,10 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
     u_char *packet_data;
     uint32_t *counter = NULL;
     uint32_t *dataIQ = NULL;
+
+    uint32_t *dataU = NULL;
+    uint32_t *dataL = NULL;
+
     int *cjumps = NULL;
     int count,wcount,datasize,p_datasize,file_len,mode_select;
 
@@ -1366,7 +1327,7 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
 
 //    datasize = decodePacket(&dataIQ,&counter,packet_data,psize,wcount,set_counteroffset,set_sindex);
 
-    datasize = decodeDataPacket(&dataIQ,&counter,packet_data,psize,wcount,set_counteroffset,set_sindex);
+    datasize = decodeDataPacket(&dataU,&dataL,packet_data,psize,wcount,set_counteroffset,set_sindex);
 
     if (datasize == -1) {
       //fprintf(stderr, "Decode Packet failed. Returned: %i\n" ,datasize);
@@ -1376,33 +1337,21 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
     }
 
    // int numjumps = counterJumps(&cjumps,counter,datasize);
-    int numjumps = decodeDataJumps(&cjumps,dataIQ, counter,datasize);
+    int numjumps = decodeDataJumps(&cjumps,dataU,dataL, datasize);
     int nchirps = numjumps/2;
-
-    printf("returned cjumps: ");
-    for(i=0;i<numjumps;i++){
-        printf("%i ",cjumps[i]);
-    }
-    printf("\n");
 
      // printf("Decoded %i out of %i packets \n",wcount,count);
      // printf("datasize: %i, counter[0]: %u, counter[end-1]: %u, numjumps: %i\n",datasize,counter[0],counter[datasize-1],numjumps);
       char statstr[128];
-      sprintf(statstr,"datasize: %i, counter[0]: %u, counter[end-1]: %u, numjumps: %i\n",datasize,counter[0],counter[datasize-1],numjumps);
-      setTranscript(statstr);
-
-      sprintf(statstr,"%s","");
-      for (i=0;i<numjumps;i++){
-        sprintf(statstr,"%s %i",statstr,cjumps[i]);
-      }
+      sprintf(statstr,"datasize: %i,dataU[0]: %u, dataU[end-1]: %u, dataL[0]: %u, dataL[end-1]: %u, numjumps: %i\n",datasize,dataU[0],dataU[datasize-1],dataL[0],dataL[datasize-1],numjumps);
       setTranscript(statstr);
 
       if (mode_select == 1){
           fp_c = fopen(filenameC, "wb" );
           fp_iq = fopen(filenameIQ, "wb" );
 
-          fwrite (counter,sizeof(uint32_t),datasize,fp_c);
-          fwrite (dataIQ,sizeof(uint32_t),datasize,fp_iq);
+          fwrite (dataU,sizeof(uint32_t),datasize,fp_c);
+          fwrite (dataL,sizeof(uint32_t),datasize,fp_iq);
 
           fclose(fp_c);
           fclose(fp_iq);
@@ -1417,33 +1366,56 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
 
       plotDataI.clear();
       plotDataQ.clear();
+      plotDataI2.clear();
+      plotDataQ2.clear();
       plotTimeVec.clear();
+      plotDataC.clear();
+      plotDataC2.clear();
+
+      u_char data_format = GetRxDataFormat();
+
+      int cjump_ind = 0;
+      if (numjumps >2) cjump_ind = 1;
+
+      int time_ind = 0;
       for(i=0;i<plotrng;i++){
-          plotDataC.append((double)counter[i]);
-          plotDataI.append((double)(*((int16_t *)dataIQ+2*i+1)));
-          plotDataQ.append((double)(*((int16_t *)dataIQ+2*i)));
-          plotTimeVec.append((double)i);
+          if (i == cjumps[cjump_ind]){
+              cjump_ind++;
+          }
+          else {
+              plotDataC.append((double)dataL[i]);
+              plotDataI.append((double)(*((int16_t *)dataL+2*i+1)));
+              plotDataQ.append((double)(*((int16_t *)dataL+2*i)));
+              plotDataC2.append((double)dataU[i]);
+              plotDataI2.append((double)(*((int16_t *)dataU+2*i+1)));
+              plotDataQ2.append((double)(*((int16_t *)dataU+2*i)));
+              plotTimeVec.append((double)i);
+              time_ind++;
+
+          }
       }
 
       ctrjumpsX.clear();
       ctrjumpsY.clear();
+      ctrjumpsY2.clear();
       for(i=0;i<numjumps;i++){
           if (cjumps[i]>plotrng) break;
           ctrjumpsX.append((double)cjumps[i]);
-          ctrjumpsY.append((double)counter[cjumps[i]]);
+          ctrjumpsY.append((double)dataL[cjumps[i]]);
+          ctrjumpsY2.append((double)dataU[cjumps[i]]);
       }
 
       updateDataPlotIQ();
 
      int start_offset = 0;
      int fft_plotlen = datasize;
-     if(numjumps>5){
-        start_offset = cjumps[4];
-        fft_plotlen = cjumps[5] - start_offset;
+     if(numjumps>6){
+        start_offset = cjumps[5];
+        fft_plotlen = cjumps[6] - start_offset;
      }
-     else if(numjumps>3){
-        start_offset = cjumps[2];
-        fft_plotlen = cjumps[3] - start_offset;
+     else if(numjumps>4){
+        start_offset = cjumps[3];
+        fft_plotlen = cjumps[4] - start_offset;
      }
      else if(numjumps>2){
         start_offset = cjumps[1];
@@ -1454,9 +1426,11 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
         fft_plotlen = cjumps[1] - start_offset;
      }
 
-     double *fftI, *fftQ;
-     int lenI = fftDataI(&fftI,dataIQ+start_offset,fft_plotlen);
-     int lenQ = fftDataQ(&fftQ,dataIQ+start_offset,fft_plotlen);
+     double *fftI, *fftQ,*fftI2, *fftQ2;;
+     int lenI = fftDataI(&fftI,dataL+start_offset,fft_plotlen);
+     int lenQ = fftDataQ(&fftQ,dataL+start_offset,fft_plotlen);
+     int lenI2 = fftDataI(&fftI2,dataU+start_offset,fft_plotlen);
+     int lenQ2 = fftDataQ(&fftQ2,dataU+start_offset,fft_plotlen);
 
      int lenIQ;
      if(lenI != lenQ){
@@ -1467,25 +1441,53 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
      else {
          lenIQ = lenI;
      }
+
+     int lenIQ2;
+     if(lenI2 != lenQ2){
+         setTranscript("IQ Vector Length Mismatch!");
+         if (lenI2 >lenQ2) lenIQ2 = lenQ2;
+         else lenIQ2 = lenI2;
+     }
+     else {
+         lenIQ2 = lenI2;
+     }
+
+     if(lenIQ != lenIQ2){
+         setTranscript("IQ and IQ2 Vector Length Mismatch!");
+         if (lenIQ >lenIQ2) lenIQ = lenIQ2;
+         else lenIQ2 = lenIQ;
+     }
+
      double freqstep = (double)2.0*SAMPLING_FREQ/lenIQ;
+
      plotfftI.clear();
      plotfftQ.clear();
+     plotfftI2.clear();
+     plotfftQ2.clear();
      plotfftVec.clear();
-     double absI,absQ;
+     double absI,absQ,absI2,absQ2;
      for(i=1;i<(lenIQ/2);i+=2){
          absI = sqrt(fftI[i-1]*fftI[i-1]+fftI[i]*fftI[i]);
          absQ = sqrt(fftQ[i-1]*fftQ[i-1]+fftQ[i]*fftQ[i]);
+         absI2 = sqrt(fftI2[i-1]*fftI2[i-1]+fftI2[i]*fftI2[i]);
+         absQ2 = sqrt(fftQ2[i-1]*fftQ2[i-1]+fftQ2[i]*fftQ2[i]);
           plotfftI.append(20.0*log10(absI));
           plotfftQ.append(20.0*log10(absQ));
-         plotfftVec.append((double)((i-1)/2) * freqstep);
+          plotfftI2.append(20.0*log10(absI2));
+          plotfftQ2.append(20.0*log10(absQ2));
+          plotfftVec.append((double)((i-1)/2) * freqstep);
      }
 
      updateFFTPlotIQ();
 
      delete[] fftI;
      delete[] fftQ;
-     delete[] counter;
-     delete[] dataIQ;
+     delete[] fftI2;
+     delete[] fftQ2;
+//     delete[] counter;
+//     delete[] dataIQ;
+     delete[] dataU;
+     delete[] dataL;
      delete[] cjumps;
 //      free(counter);
 //      free(dataIQ);
@@ -2002,13 +2004,20 @@ uint32_t UDAR_Controller::genCommandIdentifier(){
     return ms;
 }
 
+void UDAR_Controller::updateRXStatus(){
+ //   if (interfaceMap[ui->networkInterfaces->currentText()]->IsListening()){
+        QString qstr = interfaceMap[ui->networkInterfaces->currentText()]->GetThreadStatus();
+        setStatusTranscript(qstr);
+//    }
+}
+
 void UDAR_Controller::on_promiscModeCheckBox_stateChanged(int state){
     interfaceMap[ui->networkInterfaces->currentText()]->setPromiscMode(state);
 }
 
 void UDAR_Controller::on_getThreadStatus_clicked(){
-   QString qstr = interfaceMap[ui->networkInterfaces->currentText()]->GetThreadStatus();
-   setTranscript(qstr);
+    QString qstr = interfaceMap[ui->networkInterfaces->currentText()]->GetThreadStatus();
+    setTranscript(qstr);
 }
 
 void UDAR_Controller::on_printExtBuf_clicked(){
@@ -2062,32 +2071,40 @@ void UDAR_Controller::on_plotOutputButton_clicked(){
     strptr[2] = out_fname_IQ;
 
     decode_plot(numargs,strptr,out_dir);
+
+    if (ui->tabWidget_c->currentIndex() == 0){
+        ui->tabWidget_c->setCurrentIndex(1);
+    }
+}
+
+void UDAR_Controller::setStatusTranscript(QString text){
+    ui->statusTranscript->setText(text);
 }
 
 void UDAR_Controller::setTranscript(QString text){
     ui->transcript->append(text);
-    fixTranscirptPosition();
+    fixTranscriptPosition();
 }
 
 void UDAR_Controller::setTranscript(char * text){
     ui->transcript->append(text);
-    fixTranscirptPosition();
+    fixTranscriptPosition();
 }
 
 void UDAR_Controller::setTranscript(int data){
     QString text = QString::number(data);
     ui->transcript->append(text);
-    fixTranscirptPosition();
+    fixTranscriptPosition();
 }
 void UDAR_Controller::setTranscript(unsigned int data){
     QString text = QString::number(data);
     ui->transcript->append(text);
-    fixTranscirptPosition();
+    fixTranscriptPosition();
 }
 void UDAR_Controller::setTranscript(double data){
     QString text = QString::number(data);
     ui->transcript->append(text);
-    fixTranscirptPosition();
+    fixTranscriptPosition();
 }
 void UDAR_Controller::setTranscript(u_char *data, int len){
     char text[STR_SIZE];
@@ -2105,7 +2122,7 @@ void UDAR_Controller::setTranscript(u_char *data, int len){
 
     }
    ui->transcript->append(text);
-   fixTranscirptPosition();
+   fixTranscriptPosition();
 }
 void UDAR_Controller::setTranscript(u_char * text){
     QString s;
@@ -2124,9 +2141,9 @@ void UDAR_Controller::setTranscript(u_char * text){
 
          }
    ui->transcript->append(result);
-   fixTranscirptPosition();
+   fixTranscriptPosition();
 }
-void UDAR_Controller::fixTranscirptPosition(){
+void UDAR_Controller::fixTranscriptPosition(){
     ui->transcript->moveCursor(QTextCursor::End);
     ui->transcript->verticalScrollBar()->setValue(ui->transcript->verticalScrollBar()->maximum());
 }

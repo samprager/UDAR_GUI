@@ -72,10 +72,13 @@ public:
     int KillThreads();
     int PrintExtBuffer(int offset);
     void setPromiscMode(int value);
+    int IsListening();
+    int IsRecording();
 private:
     UDAR_Controller *parent_ui;
     QString if_name;
     QString if_status;
+    QString thread_status;
     u_char if_mac[6];
     u_char if_ip[6];
     int has_mac,has_ip,has_status;

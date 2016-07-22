@@ -327,24 +327,31 @@ QString NetInterface::GetThreadStatus(){
     char tempstr[128];
     int err;
     if (rx_thread_open == 0){
-        qstr ="Read thread Not Open";
+        thread_status ="["+ if_name + "," +if_status + "] Read thread Not Open";
         //return qstr;
     }
     else if (wr_thread_open == 0){
         sprintf(tempstr,"read: %i/%i, written (inactive): %i",rec_threadctrl[0][2],rec_threadctrl[0][3],0);
-        qstr = QString::fromLatin1(tempstr);
+        thread_status = "["+ if_name + "," +if_status + "] " + QString::fromLatin1(tempstr);
         //return qstr;
     }
     else if (rec_threadctrl[1][2] < RX_WRITE_LIM) {
         char tempstr[128];
         sprintf(tempstr,"read: %i/%i, written: %i",rec_threadctrl[0][2],rec_threadctrl[0][3],rec_threadctrl[1][2]);
-        qstr = QString::fromLatin1(tempstr);
+        thread_status = "["+ if_name + "," +if_status + "] " + QString::fromLatin1(tempstr);
     }
     else {
        err = KillThreads();
-       qstr = "Write Limit Exceeded...Killing threads";
+       thread_status = "["+ if_name + "," +if_status + "] " + "Write Limit Exceeded...Killing threads";
     }
-    return qstr;
+    return thread_status;
+}
+
+int NetInterface::IsListening(){
+    return rx_thread_open;
+}
+int NetInterface::IsRecording(){
+    return wr_thread_open;
 }
 
 int NetInterface::PrintExtBuffer(int offset){
