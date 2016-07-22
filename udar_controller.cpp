@@ -1389,7 +1389,7 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
               plotDataC2.append((double)dataU[i]);
               plotDataI2.append((double)(*((int16_t *)dataU+2*i+1)));
               plotDataQ2.append((double)(*((int16_t *)dataU+2*i)));
-              plotTimeVec.append((double)i);
+              plotTimeVec.append((double)time_ind);
               time_ind++;
 
           }
@@ -1410,24 +1410,25 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
      int start_offset = 0;
      int fft_plotlen = datasize;
      if(numjumps>6){
-        start_offset = cjumps[5];
-        fft_plotlen = cjumps[6] - start_offset;
+        start_offset = cjumps[5]+1;
+        fft_plotlen = cjumps[6]-1 - start_offset;
      }
      else if(numjumps>4){
-        start_offset = cjumps[3];
-        fft_plotlen = cjumps[4] - start_offset;
+        start_offset = cjumps[3]+1;
+        fft_plotlen = cjumps[4]-1 - start_offset;
      }
      else if(numjumps>2){
-        start_offset = cjumps[1];
-        fft_plotlen = cjumps[2] - start_offset;
+        start_offset = cjumps[1]+1;
+        fft_plotlen = cjumps[2]-1 - start_offset;
      }
      else if(numjumps>1){
-        start_offset = cjumps[0];
-        fft_plotlen = cjumps[1] - start_offset;
+        start_offset = cjumps[0]+1;
+        fft_plotlen = cjumps[1]-1 - start_offset;
      }
 
      double *fftI, *fftQ,*fftI2, *fftQ2;;
      int lenI = fftDataI(&fftI,dataL+start_offset,fft_plotlen);
+   //  int lenI = fftData(&fftI, plotDataI, fft_plotlen);     // with vectors
      int lenQ = fftDataQ(&fftQ,dataL+start_offset,fft_plotlen);
      int lenI2 = fftDataI(&fftI2,dataU+start_offset,fft_plotlen);
      int lenQ2 = fftDataQ(&fftQ2,dataU+start_offset,fft_plotlen);
@@ -1494,6 +1495,35 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
 //      free(cjumps);
 
 }
+
+int UDAR_Controller::fftData(double **fft, QVector<double> &data, int datasize){
+    int i;
+    uint64_t n, nn, nz, len;
+
+    nn = (uint64_t) datasize;
+
+    // Construct double array with I at even indices and 0 at odd indices
+    len = ceiling2(nn<<2);
+    nz = len>>1;
+    n = nn<<1;
+
+    double *arrayIQ = new double[len];
+
+    // generate sequences of length n with nn complex data points
+    for(i=1;i<n;i+=2){
+        arrayIQ[i-1] = data[((i-1)>>1)];
+        arrayIQ[i] = 0;
+    }
+    zeroPad(arrayIQ,n,len);
+
+    //fftCT_v2(arrayIQ,nz);
+
+    fftR_v3(arrayIQ,nz);
+
+    *fft = arrayIQ;
+    return len;
+}
+
 
 int UDAR_Controller::fftDataIQ(double **fftIQ, uint32_t *dataIQ, int datasize){
     int i;

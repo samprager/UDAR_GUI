@@ -136,6 +136,7 @@ public:
     void decode_plot(int argc, char *argv[], char *outdir);
 
 
+    int fftData(double **fft, QVector<double> &data, int datasize);
     int fftDataI(double **fftI, uint32_t *dataIQ,int datasize);
     int fftDataQ(double **fftQ, uint32_t *dataIQ,int datasize);
     int fftDataIQ(double **fftIQ, uint32_t *dataIQ,int datasize);

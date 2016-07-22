@@ -649,11 +649,12 @@ public:
         buttonGroup_5->addButton(dac_data_u_radioButton);
         dac_data_u_radioButton->setObjectName(QStringLiteral("dac_data_u_radioButton"));
         dac_data_u_radioButton->setGeometry(QRect(348, 52, 17, 20));
+        dac_data_u_radioButton->setChecked(true);
         adc_counter_u_radioButton = new QRadioButton(tab);
         buttonGroup_5->addButton(adc_counter_u_radioButton);
         adc_counter_u_radioButton->setObjectName(QStringLiteral("adc_counter_u_radioButton"));
         adc_counter_u_radioButton->setGeometry(QRect(348, 72, 21, 20));
-        adc_counter_u_radioButton->setChecked(true);
+        adc_counter_u_radioButton->setChecked(false);
         global_counter_u_radioButton = new QRadioButton(tab);
         buttonGroup_5->addButton(global_counter_u_radioButton);
         global_counter_u_radioButton->setObjectName(QStringLiteral("global_counter_u_radioButton"));
@@ -795,7 +796,7 @@ public:
 
         tabWidget_a->setCurrentIndex(0);
         tabWidget_c->setCurrentIndex(1);
-        tabWidget_b->setCurrentIndex(0);
+        tabWidget_b->setCurrentIndex(1);
 
 
         QMetaObject::connectSlotsByName(UDAR_Controller);
