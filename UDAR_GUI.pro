@@ -17,19 +17,19 @@ SOURCES += main.cpp\
     getip.cpp \
     netinterface.cpp \
     packet_rx.cpp \
-    read_pcap.cpp \
     qcustomplot.cpp \
     fftCT.cpp \
-    hexspinbox.cpp
+    hexspinbox.cpp \
+    decode_pcap.cpp
 
 HEADERS  += udar_controller.h \
     getip.h \
     netinterface.h \
-    read_pcap.h \
     packet_rx.h \
     qcustomplot.h \
     fftCT.h \
-    hexspinbox.h
+    hexspinbox.h \
+    decode_pcap.h
 
 FORMS    += udar_controller.ui
 

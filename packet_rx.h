@@ -21,7 +21,7 @@
 #include <time.h>
 
 #define RX_WRITE_LIM 10000
-#define RX_PKT_SIZE 496
+#define RX_PKT_SIZE 528 //496
 #define RX_HEADER_SIZE 16
 
 

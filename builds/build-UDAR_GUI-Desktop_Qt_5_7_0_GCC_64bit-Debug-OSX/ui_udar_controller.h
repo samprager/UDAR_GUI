@@ -587,7 +587,7 @@ public:
         writeLimit_spinBox->setObjectName(QStringLiteral("writeLimit_spinBox"));
         writeLimit_spinBox->setGeometry(QRect(168, 32, 61, 24));
         writeLimit_spinBox->setMaximum(999999);
-        writeLimit_spinBox->setValue(10000);
+        writeLimit_spinBox->setValue(1000);
         promiscModeCheckBox = new QCheckBox(tab_2);
         promiscModeCheckBox->setObjectName(QStringLiteral("promiscModeCheckBox"));
         promiscModeCheckBox->setGeometry(QRect(16, 38, 113, 20));

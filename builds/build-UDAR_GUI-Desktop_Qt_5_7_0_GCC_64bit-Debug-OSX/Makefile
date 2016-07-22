@@ -53,10 +53,10 @@ SOURCES       = ../../main.cpp \
 		../../getip.cpp \
 		../../netinterface.cpp \
 		../../packet_rx.cpp \
-		../../read_pcap.cpp \
 		../../qcustomplot.cpp \
 		../../fftCT.cpp \
-		../../hexspinbox.cpp moc_udar_controller.cpp \
+		../../hexspinbox.cpp \
+		../../decode_pcap.cpp moc_udar_controller.cpp \
 		moc_qcustomplot.cpp \
 		moc_hexspinbox.cpp
 OBJECTS       = main.o \
@@ -64,10 +64,10 @@ OBJECTS       = main.o \
 		getip.o \
 		netinterface.o \
 		packet_rx.o \
-		read_pcap.o \
 		qcustomplot.o \
 		fftCT.o \
 		hexspinbox.o \
+		decode_pcap.o \
 		moc_udar_controller.o \
 		moc_qcustomplot.o \
 		moc_hexspinbox.o
@@ -231,19 +231,19 @@ DIST          = /Users/sam/Qt/5.7/clang_64/mkspecs/features/spec_pre.prf \
 		../../../../UDAR_GUI.pro ../../udar_controller.h \
 		../../getip.h \
 		../../netinterface.h \
-		../../read_pcap.h \
 		../../packet_rx.h \
 		../../qcustomplot.h \
 		../../fftCT.h \
-		../../hexspinbox.h ../../main.cpp \
+		../../hexspinbox.h \
+		../../decode_pcap.h ../../main.cpp \
 		../../udar_controller.cpp \
 		../../getip.cpp \
 		../../netinterface.cpp \
 		../../packet_rx.cpp \
-		../../read_pcap.cpp \
 		../../qcustomplot.cpp \
 		../../fftCT.cpp \
-		../../hexspinbox.cpp
+		../../hexspinbox.cpp \
+		../../decode_pcap.cpp
 QMAKE_TARGET  = UDAR_GUI
 DESTDIR       = 
 TARGET        = UDAR_GUI.app/Contents/MacOS/UDAR_GUI
@@ -610,8 +610,8 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
-	$(COPY_FILE) --parents ../../udar_controller.h ../../getip.h ../../netinterface.h ../../read_pcap.h ../../packet_rx.h ../../qcustomplot.h ../../fftCT.h ../../hexspinbox.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../../main.cpp ../../udar_controller.cpp ../../getip.cpp ../../netinterface.cpp ../../packet_rx.cpp ../../read_pcap.cpp ../../qcustomplot.cpp ../../fftCT.cpp ../../hexspinbox.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../../udar_controller.h ../../getip.h ../../netinterface.h ../../packet_rx.h ../../qcustomplot.h ../../fftCT.h ../../hexspinbox.h ../../decode_pcap.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../../main.cpp ../../udar_controller.cpp ../../getip.cpp ../../netinterface.cpp ../../packet_rx.cpp ../../qcustomplot.cpp ../../fftCT.cpp ../../hexspinbox.cpp ../../decode_pcap.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents ../../udar_controller.ui $(DISTDIR)/
 
 
@@ -649,7 +649,7 @@ moc_udar_controller.cpp: /Users/sam/Qt/5.7/clang_64/lib/QtWidgets.framework/Head
 		../../packet_rx.h \
 		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QString \
 		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qstring.h \
-		../../read_pcap.h \
+		../../decode_pcap.h \
 		../../udar_controller.h \
 		../../qcustomplot.h \
 		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QObject \
@@ -777,7 +777,7 @@ main.o: ../../main.cpp ../../udar_controller.h \
 		../../packet_rx.h \
 		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QString \
 		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qstring.h \
-		../../read_pcap.h \
+		../../decode_pcap.h \
 		../../qcustomplot.h \
 		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QObject \
 		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qobject.h \
@@ -831,7 +831,7 @@ udar_controller.o: ../../udar_controller.cpp ../../udar_controller.h \
 		../../packet_rx.h \
 		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QString \
 		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qstring.h \
-		../../read_pcap.h \
+		../../decode_pcap.h \
 		../../qcustomplot.h \
 		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QObject \
 		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qobject.h \
@@ -890,7 +890,7 @@ netinterface.o: ../../netinterface.cpp ../../netinterface.h \
 		../../udar_controller.h \
 		../../getip.h \
 		../../fftCT.h \
-		../../read_pcap.h \
+		../../decode_pcap.h \
 		../../qcustomplot.h \
 		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QObject \
 		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qobject.h \
@@ -935,58 +935,6 @@ netinterface.o: ../../netinterface.cpp ../../netinterface.h \
 
 packet_rx.o: ../../packet_rx.cpp ../../packet_rx.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o packet_rx.o ../../packet_rx.cpp
-
-read_pcap.o: ../../read_pcap.cpp ../../read_pcap.h \
-		../../udar_controller.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtWidgets.framework/Headers/QMainWindow \
-		/Users/sam/Qt/5.7/clang_64/lib/QtWidgets.framework/Headers/qmainwindow.h \
-		../../getip.h \
-		../../fftCT.h \
-		../../netinterface.h \
-		../../packet_rx.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QString \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qstring.h \
-		../../qcustomplot.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QObject \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qobject.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QPointer \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qpointer.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtWidgets.framework/Headers/QWidget \
-		/Users/sam/Qt/5.7/clang_64/lib/QtWidgets.framework/Headers/qwidget.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtGui.framework/Headers/QPainter \
-		/Users/sam/Qt/5.7/clang_64/lib/QtGui.framework/Headers/qpainter.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtGui.framework/Headers/QPaintEvent \
-		/Users/sam/Qt/5.7/clang_64/lib/QtGui.framework/Headers/qevent.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtGui.framework/Headers/QMouseEvent \
-		/Users/sam/Qt/5.7/clang_64/lib/QtGui.framework/Headers/QPixmap \
-		/Users/sam/Qt/5.7/clang_64/lib/QtGui.framework/Headers/qpixmap.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QVector \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qvector.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QDateTime \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qdatetime.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QMultiMap \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qmap.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QFlags \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qflags.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QDebug \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qdebug.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtGui.framework/Headers/QVector2D \
-		/Users/sam/Qt/5.7/clang_64/lib/QtGui.framework/Headers/qvector2d.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QStack \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qstack.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QCache \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qcache.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QMargins \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qmargins.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qmath.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qnumeric.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtPrintSupport.framework/Headers/QPrinter \
-		/Users/sam/Qt/5.7/clang_64/lib/QtPrintSupport.framework/Headers/qprinter.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtPrintSupport.framework/Headers/QPrintEngine \
-		/Users/sam/Qt/5.7/clang_64/lib/QtPrintSupport.framework/Headers/qprintengine.h \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QtNumeric \
-		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QMap
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o read_pcap.o ../../read_pcap.cpp
 
 qcustomplot.o: ../../qcustomplot.cpp ../../qcustomplot.h \
 		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QObject \
@@ -1140,6 +1088,58 @@ hexspinbox.o: ../../hexspinbox.cpp /Users/sam/Qt/5.7/clang_64/lib/QtGui.framewor
 		/Users/sam/Qt/5.7/clang_64/lib/QtWidgets.framework/Headers/QSpinBox \
 		/Users/sam/Qt/5.7/clang_64/lib/QtWidgets.framework/Headers/qspinbox.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o hexspinbox.o ../../hexspinbox.cpp
+
+decode_pcap.o: ../../decode_pcap.cpp ../../decode_pcap.h \
+		../../udar_controller.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtWidgets.framework/Headers/QMainWindow \
+		/Users/sam/Qt/5.7/clang_64/lib/QtWidgets.framework/Headers/qmainwindow.h \
+		../../getip.h \
+		../../fftCT.h \
+		../../netinterface.h \
+		../../packet_rx.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QString \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qstring.h \
+		../../qcustomplot.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QObject \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qobject.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QPointer \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qpointer.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtWidgets.framework/Headers/QWidget \
+		/Users/sam/Qt/5.7/clang_64/lib/QtWidgets.framework/Headers/qwidget.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtGui.framework/Headers/QPainter \
+		/Users/sam/Qt/5.7/clang_64/lib/QtGui.framework/Headers/qpainter.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtGui.framework/Headers/QPaintEvent \
+		/Users/sam/Qt/5.7/clang_64/lib/QtGui.framework/Headers/qevent.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtGui.framework/Headers/QMouseEvent \
+		/Users/sam/Qt/5.7/clang_64/lib/QtGui.framework/Headers/QPixmap \
+		/Users/sam/Qt/5.7/clang_64/lib/QtGui.framework/Headers/qpixmap.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QVector \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qvector.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QDateTime \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qdatetime.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QMultiMap \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qmap.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QFlags \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qflags.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QDebug \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qdebug.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtGui.framework/Headers/QVector2D \
+		/Users/sam/Qt/5.7/clang_64/lib/QtGui.framework/Headers/qvector2d.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QStack \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qstack.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QCache \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qcache.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QMargins \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qmargins.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qmath.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/qnumeric.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtPrintSupport.framework/Headers/QPrinter \
+		/Users/sam/Qt/5.7/clang_64/lib/QtPrintSupport.framework/Headers/qprinter.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtPrintSupport.framework/Headers/QPrintEngine \
+		/Users/sam/Qt/5.7/clang_64/lib/QtPrintSupport.framework/Headers/qprintengine.h \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QtNumeric \
+		/Users/sam/Qt/5.7/clang_64/lib/QtCore.framework/Headers/QMap
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o decode_pcap.o ../../decode_pcap.cpp
 
 moc_udar_controller.o: moc_udar_controller.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_udar_controller.o moc_udar_controller.cpp

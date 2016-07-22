@@ -29,7 +29,7 @@
 #include "fftCT.h"
 
 #include "netinterface.h"
-#include "read_pcap.h"
+#include "decode_pcap.h"
 #include "packet_rx.h"
 #include "qcustomplot.h"
 #include <QMap>
@@ -59,8 +59,14 @@
 #define DEFAULT_IF_DEV1 "en4"
 #define DEFAULT_IF_DEV2 "en0"
 
-#define PLOT_RANGE_LIMIT 1000000 // 32000
+#define PLOT_RANGE_LIMIT 100000 // 32000
 #define SAMPLING_FREQ 245.76    // MHz
+#define DEFAULT_ADC_SAMPLES 254
+#define DEFAULT_CHIRP_PRF 10.0
+#define DEFAULT_FREQ_OFFSET 768
+#define DEFAULT_NUM_SAMPLES 4096
+#define DEFAULT_CHIRP_TUNING_WORD 1
+#define DEFAULT_CHIRP_PHASE_ACCUM_LEN 16
 
 #define PCAP_WRITE_LIM 5000
 #define PCAP_PKT_SIZE 496

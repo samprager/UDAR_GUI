@@ -153,6 +153,8 @@ void UDAR_Controller::controllerInit()
     ui->fmc150_CHA_Delay_spinBox->setValue(0x1e);
     ui->fmc150_CHB_Delay_spinBox->setValue(0);
 
+    on_chirpParamsResetButton_clicked();
+
     calculateChirpParams();
 
     storeChirpParams();
@@ -1359,7 +1361,12 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
     int psize = RX_PKT_SIZE-RX_HEADER_SIZE;
     wcount = file_len/(RX_PKT_SIZE-RX_HEADER_SIZE);
 
-    datasize = decodePacket(&dataIQ,&counter,packet_data,psize,wcount);
+    int set_counteroffset = 1;
+    int set_sindex = 0;
+
+//    datasize = decodePacket(&dataIQ,&counter,packet_data,psize,wcount,set_counteroffset,set_sindex);
+
+    datasize = decodeDataPacket(&dataIQ,&counter,packet_data,psize,wcount,set_counteroffset,set_sindex);
 
     if (datasize == -1) {
       //fprintf(stderr, "Decode Packet failed. Returned: %i\n" ,datasize);
@@ -1368,12 +1375,26 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
       return;
     }
 
-    int numjumps = counterJumps(&cjumps,counter,datasize);
+   // int numjumps = counterJumps(&cjumps,counter,datasize);
+    int numjumps = decodeDataJumps(&cjumps,dataIQ, counter,datasize);
+    int nchirps = numjumps/2;
+
+    printf("returned cjumps: ");
+    for(i=0;i<numjumps;i++){
+        printf("%i ",cjumps[i]);
+    }
+    printf("\n");
 
      // printf("Decoded %i out of %i packets \n",wcount,count);
      // printf("datasize: %i, counter[0]: %u, counter[end-1]: %u, numjumps: %i\n",datasize,counter[0],counter[datasize-1],numjumps);
       char statstr[128];
       sprintf(statstr,"datasize: %i, counter[0]: %u, counter[end-1]: %u, numjumps: %i\n",datasize,counter[0],counter[datasize-1],numjumps);
+      setTranscript(statstr);
+
+      sprintf(statstr,"%s","");
+      for (i=0;i<numjumps;i++){
+        sprintf(statstr,"%s %i",statstr,cjumps[i]);
+      }
       setTranscript(statstr);
 
       if (mode_select == 1){
@@ -1416,11 +1437,19 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
 
      int start_offset = 0;
      int fft_plotlen = datasize;
-     if(numjumps>3){
+     if(numjumps>5){
+        start_offset = cjumps[4];
+        fft_plotlen = cjumps[5] - start_offset;
+     }
+     else if(numjumps>3){
         start_offset = cjumps[2];
         fft_plotlen = cjumps[3] - start_offset;
      }
      else if(numjumps>2){
+        start_offset = cjumps[1];
+        fft_plotlen = cjumps[2] - start_offset;
+     }
+     else if(numjumps>1){
         start_offset = cjumps[0];
         fft_plotlen = cjumps[1] - start_offset;
      }
@@ -1830,23 +1859,23 @@ void UDAR_Controller::on_chirpParamsGenButton_clicked(){
     double two_pow_n = (double)(1<<n);
     double slope = BW/period;                               //MHz/usec
 
-    int num_samples = (int)ceil(period*fClock);
-    int tuning_word_coeff = (int)((BW*two_pow_n)/(num_samples*fClock));
-    int freq_offset = (int) (two_pow_n*min_freq/fClock);
+    int num_samples = (int)round(period*fClock);
+    int tuning_word_coeff = (int)round((BW*two_pow_n)/(num_samples*fClock));
+    int freq_offset = (int)round(two_pow_n*min_freq/fClock);
 
     ui->chirpTuningWord_spinBox->setValue(tuning_word_coeff);
     ui->numSamples_spinBox->setValue(num_samples);
     ui->freqOffset_spinBox->setValue(freq_offset);
 }
 void UDAR_Controller::on_chirpParamsResetButton_clicked(){
-    int n = 16;
-    double fClock = 491.52;    //MHz
-    double chirp_prf = 10.0;
-    int adc_sample_count = 200;
+    int n = DEFAULT_CHIRP_PHASE_ACCUM_LEN;
+    double fClock = SAMPLING_FREQ;    //MHz
+    double chirp_prf = DEFAULT_CHIRP_PRF;
+    int adc_sample_count = DEFAULT_ADC_SAMPLES;
 
-    int tuning_word_coeff = 1;
-    int num_samples = 4096;
-    int freq_offset = 768;
+    int tuning_word_coeff = DEFAULT_CHIRP_TUNING_WORD;
+    int num_samples = DEFAULT_NUM_SAMPLES;
+    int freq_offset = DEFAULT_FREQ_OFFSET;
 
     ui->chirpTuningWord_spinBox->setValue(tuning_word_coeff);
     ui->numSamples_spinBox->setValue(num_samples);
