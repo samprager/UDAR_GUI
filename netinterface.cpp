@@ -245,7 +245,7 @@ pthread_t *threads;
 
   rx_thread_open = 1;
   sprintf(tempstr,"Read Thread Initialized...Listening to %s",device);
-  parent_ui->setTranscript(tempstr);
+  // parent_ui->setTranscript(tempstr);
 
 
   if (init_wr_thread) {
@@ -285,11 +285,11 @@ int NetInterface::initWrThread(){
     char tempstr[STR_SIZE];
 
     if (rx_thread_open == 0){
-        parent_ui->setTranscript("Read thread must be open to launch write thread");
+        // parent_ui->setTranscript("Read thread must be open to launch write thread");
         return 1;
      }
     if (wr_thread_open == 1){
-        parent_ui->setTranscript("Write thread already open");
+        // parent_ui->setTranscript("Write thread already open");
         return 1;
      }
     // Create Write Thread
@@ -313,9 +313,9 @@ int NetInterface::initWrThread(){
     wr_thread_open = 1;
 
     sprintf(tempstr,"Write Thread Initialized...Writing to %s",filename);
-    parent_ui->setTranscript(tempstr);
+    // parent_ui->setTranscript(tempstr);
     sprintf(tempstr,"Write Limit set at %i packets",rec_writelim);
-    parent_ui->setTranscript(tempstr);
+    // parent_ui->setTranscript(tempstr);
 
 
 
@@ -357,19 +357,19 @@ int NetInterface::IsRecording(){
 int NetInterface::PrintExtBuffer(int offset){
     u_char pktsample[RX_PKT_SIZE];
     if (rx_thread_open == 0){
-        parent_ui->setTranscript("Read thread Not Open");
+        // parent_ui->setTranscript("Read thread Not Open");
         return 1;
     }
-    parent_ui->setTranscript("Locking Mutex...");
+    // parent_ui->setTranscript("Locking Mutex...");
     pthread_mutex_lock(&rec_extmutex[0]);
     if (rec_extstatus[0]==1) {
         pthread_mutex_unlock(&rec_extmutex[0]);
         memcpy(pktsample,rec_pextbuf[0]+offset,RX_PKT_SIZE-offset);
-        parent_ui->setTranscript(pktsample,RX_PKT_SIZE-offset);
+        // parent_ui->setTranscript(pktsample,RX_PKT_SIZE-offset);
     }
     else {
         pthread_mutex_unlock(&rec_extmutex[0]);
-        parent_ui->setTranscript("Ext Buffer Empty");
+        // parent_ui->setTranscript("Ext Buffer Empty");
     }
     return 0;
 }
@@ -379,20 +379,20 @@ int NetInterface::KillThreads(){
     int i,err;
 
     if (wr_thread_open == 0){
-        parent_ui->setTranscript("Write Thread Not Open");
+        // parent_ui->setTranscript("Write Thread Not Open");
     }
     else {
         rec_threadctrl[1][0] = 1;
         usleep(10);
         if (rec_threadctrl[1][4] == 1){
-            parent_ui->setTranscript("Write Thread Killed");
+            // parent_ui->setTranscript("Write Thread Killed");
         }
         else {
-            parent_ui->setTranscript("Joining Write thread...");
+            // parent_ui->setTranscript("Joining Write thread...");
             err = pthread_join(rec_threads[1],NULL);
             if(err != 0) {
                 sprintf(tempstr,"\nError joining Write thread: %i\n",err);
-                parent_ui->setTranscript(tempstr);
+                // parent_ui->setTranscript(tempstr);
                 return err;
             }
         }
@@ -400,21 +400,21 @@ int NetInterface::KillThreads(){
     }
 
    if (rx_thread_open == 0){
-           parent_ui->setTranscript("Read Thread Not Open");
+           // parent_ui->setTranscript("Read Thread Not Open");
            return 0;
     }
    else {
        rec_threadctrl[2][0] = 1;
        usleep(10);
        if (rec_threadctrl[2][4] == 1){
-           parent_ui->setTranscript("Ext Buf Thread Killed");
+           // parent_ui->setTranscript("Ext Buf Thread Killed");
        }
        else{
-           parent_ui->setTranscript("Joining Ext Buf thread...");
+           // parent_ui->setTranscript("Joining Ext Buf thread...");
            err = pthread_join(rec_threads[2],NULL);
            if(err != 0) {
                sprintf(tempstr,"\nError joining Ext Buf thread: %i\n",err);
-               parent_ui->setTranscript(tempstr);
+               // parent_ui->setTranscript(tempstr);
                return err;
            }
        }
@@ -422,21 +422,21 @@ int NetInterface::KillThreads(){
        rec_threadctrl[0][0] = 1;
        usleep(10);
        if (rec_threadctrl[0][4] == 1){
-           parent_ui->setTranscript("Read Thread Killed");
+           // parent_ui->setTranscript("Read Thread Killed");
        }
        else{
-           parent_ui->setTranscript("Joining Read thread...");
+           // parent_ui->setTranscript("Joining Read thread...");
            err = pthread_join(rec_threads[0],NULL);
            if(err != 0) {
                sprintf(tempstr,"\nError joining Read thread: %i\n",err);
-               parent_ui->setTranscript(tempstr);
+               // parent_ui->setTranscript(tempstr);
                return err;
            }
        }
        rx_thread_open = 0;
 
        sprintf(tempstr,"Succeuslly exited threads. read: %i/%i, written: %i",rec_threadctrl[0][2],rec_threadctrl[0][3],rec_threadctrl[1][2]);
-       parent_ui->setTranscript(tempstr);
+       // parent_ui->setTranscript(tempstr);
 
        delete[] rec_dim;
        delete[] rec_extstatus;

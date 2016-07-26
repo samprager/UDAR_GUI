@@ -261,7 +261,7 @@ void UDAR_Controller::setupCounterPlot(QCustomPlot *plot, QPen pen){
 
     // The following plot setup is mostly taken from the plot demos:
     plot->addGraph();
-    plot->graph()->setPen(QPen(Qt::green));
+    plot->graph()->setPen(pen);
     plot->xAxis->setTicks(true);
     plot->xAxis->setTickLabels(true);
     plot->xAxis->setTickLabelFont(QFont(QFont().family(), 9));
@@ -1375,10 +1375,15 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
       u_char data_format = GetRxDataFormat();
 
       int cjump_ind = 0;
-      if (numjumps >2) cjump_ind = 1;
+      int cjump_off = 0;
+      if (numjumps >2) {
+          cjump_ind = 1;
+          cjump_off = cjumps[1];
+      }
 
       int time_ind = 0;
-      for(i=0;i<plotrng;i++){
+      //for(i=0;i<plotrng;i++){
+      for(i=cjump_off;i<plotrng;i++){
           if (i == cjumps[cjump_ind]){
               cjump_ind++;
           }
@@ -2174,6 +2179,24 @@ void UDAR_Controller::setTranscript(u_char * text){
    fixTranscriptPosition();
 }
 void UDAR_Controller::fixTranscriptPosition(){
-    ui->transcript->moveCursor(QTextCursor::End);
-    ui->transcript->verticalScrollBar()->setValue(ui->transcript->verticalScrollBar()->maximum());
+    //ui->transcript->moveCursor(QTextCursor::End);
+    //ui->transcript->verticalScrollBar()->setValue(ui->transcript->verticalScrollBar()->maximum());
+}
+
+void UDAR_Controller::on_hex2dec_in_returnPressed(){
+    QString str = ui->hex2dec_in->text();
+    bool ok;
+    int dec = str.toInt(&ok, 16);
+    QString decstr = QString("%1").arg(dec , 0, 10);
+    ui->hex2dec_out->setText(decstr);
+}
+
+void UDAR_Controller::on_dec2hex_in_returnPressed(){
+    QString str = ui->dec2hex_in->text();
+    bool ok;
+    int hex = str.toInt(&ok, 10);
+    QString hexstr = QString("%1").arg(hex , 0, 16);
+    ui->dec2hex_out->setText(hexstr);
+
+
 }

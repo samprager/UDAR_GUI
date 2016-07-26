@@ -107,6 +107,10 @@ int decodeDataJumps( int ** cjumps,uint32_t *dataU, uint32_t *dataL, int datasiz
 {
   int i,j,numjumps;
   int *cjumps_temp;
+  uint32_t l_tmp1 = 0;
+  uint32_t u_tmp1 = 0;
+  uint32_t l_tmp2 = 0;
+  uint32_t u_tmp2 = 0;
   uint32_t l_ctr1 = 0;
   uint32_t u_ctr1 = 0;
   uint32_t l_ctr2 = 0;
@@ -116,9 +120,14 @@ int decodeDataJumps( int ** cjumps,uint32_t *dataU, uint32_t *dataL, int datasiz
   int numchirps = 0;
   int cur_ind = 0;
 
+  int partial_offset = 0;
+  int has_partial = 0;
+
   for (i=0;i<datasize;i+=8){
     l_ctr2 = dataL[i+7];
     u_ctr2 = dataU[i+7];
+    l_tmp1 = dataL[i];
+    u_tmp1 = dataU[i];
     if(i==cur_ind){
         l_ctr1 = dataL[cur_ind];
         u_ctr1 = dataU[cur_ind];
@@ -128,7 +137,26 @@ int decodeDataJumps( int ** cjumps,uint32_t *dataU, uint32_t *dataL, int datasiz
            chirp_len = l_ctr2-l_ctr1;
            cur_ind = i+8;
     }
+    else if ((l_tmp1 == l_tmp2+1)&(u_tmp1 != u_tmp2+1)){
+          cur_ind = i;
+          l_ctr1 = dataL[cur_ind];
+          u_ctr1 = dataU[cur_ind];
+          partial_offset = i;
+
+    }
+    else if ((u_tmp1 == u_tmp2+1)&(l_tmp1 != l_tmp2+1)){
+        cur_ind = i;
+        l_ctr1 = dataL[cur_ind];
+        u_ctr1 = dataU[cur_ind];
+        partial_offset = i;
+    }
+    l_tmp2 = l_ctr2;
+    u_tmp2 = u_ctr2;
+
   }
+
+  if (partial_offset >0) has_partial = 1;
+  else has_partial = 0;
 
   numchirps = nchirps;
 
@@ -139,15 +167,28 @@ int decodeDataJumps( int ** cjumps,uint32_t *dataU, uint32_t *dataL, int datasiz
   cjumps_temp[0] = 0;
   cjumps_temp[numjumps-1] = datasize-1;
 
+
   nchirps = 0;
   cur_ind = 0;
 
   int l_off;
   int u_off;
 
+  l_tmp1 = 0;
+  u_tmp1 = 0;
+  l_tmp2 = 0;
+  u_tmp2 = 0;
+  l_ctr1 = 0;
+  u_ctr1 = 0;
+  l_ctr2 = 0;
+  u_ctr2 = 0;
+
   for (i=0;i<datasize;i+=8){
+ // for (i=partial_offset;i<datasize;i+=8){
     l_ctr2 = dataL[i+7];
     u_ctr2 = dataU[i+7];
+    l_tmp1 = dataL[i];
+    u_tmp1 = dataU[i];
     if(i==cur_ind){
         l_ctr1 = dataL[cur_ind];
         u_ctr1 = dataU[cur_ind];
@@ -158,6 +199,19 @@ int decodeDataJumps( int ** cjumps,uint32_t *dataU, uint32_t *dataL, int datasiz
            nchirps++;
            cur_ind = i+8;
     }
+    else if ((l_tmp1 == l_tmp2+1)&(u_tmp1 != u_tmp2+1)){
+          cur_ind = i;
+          l_ctr1 = dataL[cur_ind];
+          u_ctr1 = dataU[cur_ind];
+
+    }
+    else if ((u_tmp1 == u_tmp2+1)&(l_tmp1 != l_tmp2+1)){
+        cur_ind = i;
+        l_ctr1 = dataL[cur_ind];
+        u_ctr1 = dataU[cur_ind];
+    }
+    l_tmp2 = l_ctr2;
+    u_tmp2 = u_ctr2;
   }
 
  *cjumps = cjumps_temp;

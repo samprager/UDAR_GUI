@@ -616,166 +616,6 @@
         <string>Ch. B Delay</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label_31">
-       <property name="geometry">
-        <rect>
-         <x>660</x>
-         <y>6</y>
-         <width>31</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>RW</string>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="fmc150RegisterRW_spinbox">
-       <property name="geometry">
-        <rect>
-         <x>700</x>
-         <y>0</y>
-         <width>43</width>
-         <height>24</height>
-        </rect>
-       </property>
-       <property name="readOnly">
-        <bool>false</bool>
-       </property>
-       <property name="maximum">
-        <number>1</number>
-       </property>
-       <property name="value">
-        <number>0</number>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_32">
-       <property name="geometry">
-        <rect>
-         <x>636</x>
-         <y>26</y>
-         <width>63</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>CDCE72010</string>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="fmc150_CDCE72010_spinbox">
-       <property name="geometry">
-        <rect>
-         <x>702</x>
-         <y>26</y>
-         <width>43</width>
-         <height>24</height>
-        </rect>
-       </property>
-       <property name="readOnly">
-        <bool>false</bool>
-       </property>
-       <property name="maximum">
-        <number>1</number>
-       </property>
-       <property name="value">
-        <number>0</number>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_33">
-       <property name="geometry">
-        <rect>
-         <x>636</x>
-         <y>56</y>
-         <width>63</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>ADS62P49</string>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="fmc150_ADS62P49_spinbox">
-       <property name="geometry">
-        <rect>
-         <x>700</x>
-         <y>54</y>
-         <width>43</width>
-         <height>24</height>
-        </rect>
-       </property>
-       <property name="readOnly">
-        <bool>false</bool>
-       </property>
-       <property name="maximum">
-        <number>1</number>
-       </property>
-       <property name="value">
-        <number>0</number>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_34">
-       <property name="geometry">
-        <rect>
-         <x>648</x>
-         <y>80</y>
-         <width>51</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>DAC3283</string>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="fmc150_DAC3283_spinbox">
-       <property name="geometry">
-        <rect>
-         <x>702</x>
-         <y>76</y>
-         <width>43</width>
-         <height>24</height>
-        </rect>
-       </property>
-       <property name="readOnly">
-        <bool>false</bool>
-       </property>
-       <property name="maximum">
-        <number>1</number>
-       </property>
-       <property name="value">
-        <number>0</number>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_35">
-       <property name="geometry">
-        <rect>
-         <x>638</x>
-         <y>104</y>
-         <width>63</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>AMC7823</string>
-       </property>
-      </widget>
-      <widget class="QSpinBox" name="fmc150_AMC7823_spinbox">
-       <property name="geometry">
-        <rect>
-         <x>702</x>
-         <y>100</y>
-         <width>43</width>
-         <height>24</height>
-        </rect>
-       </property>
-       <property name="readOnly">
-        <bool>false</bool>
-       </property>
-       <property name="maximum">
-        <number>1</number>
-       </property>
-       <property name="value">
-        <number>0</number>
-       </property>
-      </widget>
       <widget class="QRadioButton" name="fmc150_read_radioButton">
        <property name="geometry">
         <rect>
@@ -883,6 +723,96 @@
       <attribute name="title">
        <string>...</string>
       </attribute>
+      <widget class="QLineEdit" name="dec2hex_out">
+       <property name="geometry">
+        <rect>
+         <x>462</x>
+         <y>68</y>
+         <width>89</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="inputMethodHints">
+        <set>Qt::ImhFormattedNumbersOnly</set>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="hex2dec_in">
+       <property name="geometry">
+        <rect>
+         <x>366</x>
+         <y>28</y>
+         <width>85</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="inputMethodHints">
+        <set>Qt::ImhFormattedNumbersOnly</set>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="hex2dec_out">
+       <property name="geometry">
+        <rect>
+         <x>462</x>
+         <y>28</y>
+         <width>91</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="inputMethodHints">
+        <set>Qt::ImhDigitsOnly</set>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="dec2hex_in">
+       <property name="geometry">
+        <rect>
+         <x>366</x>
+         <y>68</y>
+         <width>83</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="inputMethodHints">
+        <set>Qt::ImhDigitsOnly</set>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_31">
+       <property name="geometry">
+        <rect>
+         <x>304</x>
+         <y>26</y>
+         <width>59</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Hex to Dec</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_32">
+       <property name="geometry">
+        <rect>
+         <x>304</x>
+         <y>68</y>
+         <width>59</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Dec to Hex</string>
+       </property>
+      </widget>
      </widget>
     </widget>
     <widget class="QTabWidget" name="tabWidget_c">
@@ -1311,7 +1241,7 @@
       </rect>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">

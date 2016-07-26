@@ -59,7 +59,7 @@
 #define DEFAULT_IF_DEV1 "en4"
 #define DEFAULT_IF_DEV2 "en0"
 
-#define PLOT_RANGE_LIMIT 100000 // 32000
+#define PLOT_RANGE_LIMIT 13056 // = 3*(4096+256) // 32000
 #define SAMPLING_FREQ 245.76    // MHz
 #define DEFAULT_ADC_SAMPLES 254
 #define DEFAULT_CHIRP_PRF 10.0
@@ -232,6 +232,9 @@ private slots:
     void on_killThread_clicked();
     void on_printExtBuf_clicked();
     void on_promiscModeCheckBox_stateChanged(int state);
+
+    void on_dec2hex_in_returnPressed();
+    void on_hex2dec_in_returnPressed();
 
     void fixTranscriptPosition();
 
