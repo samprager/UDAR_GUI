@@ -2053,6 +2053,18 @@ void UDAR_Controller::on_promiscModeCheckBox_stateChanged(int state){
 void UDAR_Controller::on_getThreadStatus_clicked(){
     QString qstr = interfaceMap[ui->networkInterfaces->currentText()]->GetThreadStatus();
     setTranscript(qstr);
+    int statbufsize = interfaceMap[ui->networkInterfaces->currentText()]->GetStatBufferSize();
+    unsigned char *statbuf = new unsigned char[statbufsize];
+    int err = interfaceMap[ui->networkInterfaces->currentText()]->GetStatBuffer(&statbuf,0);
+    if(err == statbufsize){
+        setTranscript(statbuf,statbufsize);
+    }
+    else {
+        char tempstr[STR_SIZE];
+        sprintf(tempstr,"No Stat Buf update available. Returned: %i",err);
+        setTranscript(tempstr);
+    }
+    delete[] statbuf;
 }
 
 void UDAR_Controller::on_printExtBuf_clicked(){

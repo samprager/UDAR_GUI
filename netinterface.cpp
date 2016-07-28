@@ -104,25 +104,30 @@ int NetInterface::initRxThreads(char fname[], char outdir[],int init_wr_thread, 
   int i,j,err;
 
   int len8 = RX_PKT_SIZE;   // buffer size in bytes
+  int lenstat8 = RX_STAT_PKT_SIZE;
   int len32 = len8/4;
   int *dim;
   int **threadctrl;
   int *newdata;
+  int *newstat;
   int *extstatus;
 
   numbufs = 1000;    // Number of row buffers
   numextbufs = 10;    // Number of row external buffers
+  numstatbufs= 1;
   numthreads = 3;
   numextmutex = 1;
 
     //uint32_t buffer[numbufs][len];
   unsigned char ** pbuffer;
   unsigned char ** pextbuf;
+  unsigned char ** pstatbuf;
   struct arg_struct *args;
 
 
 pthread_mutex_t *mutex;
 pthread_mutex_t *extmutex;
+pthread_mutex_t *statmutex;
 pthread_t *threads;
 
   clock_t t,end,overhead;
@@ -149,7 +154,7 @@ pthread_t *threads;
   extstatus[0] = 0;
   extstatus[1] = 0;
 
-  dim = new int[5];
+  dim = new int[7];
   dim[0] = numbufs;
   dim[1] = len8;
 
@@ -157,6 +162,8 @@ pthread_t *threads;
   dim[3] = trim;
 
   dim[4] = numextbufs;
+  dim[6] = numstatbufs;
+  dim[7] = lenstat8;
 
   overhead = clock();
   overhead = clock()-overhead;
@@ -165,10 +172,12 @@ pthread_t *threads;
     args = new arg_struct[numthreads];
     pbuffer = new unsigned char*[numbufs];
     pextbuf = new unsigned char*[numextbufs];
+    pstatbuf = new unsigned char*[numstatbufs];
     threadctrl = new int*[numthreads];
 
   for (i=0;i<numbufs;i++) pbuffer[i] = new unsigned char[len8];
   for (i=0;i<numextbufs;i++) pextbuf[i] =new unsigned char[len8];
+  for (i=0;i<numstatbufs;i++) pstatbuf[i] = new unsigned char[lenstat8];
   for(i=0;i<numthreads;i++) threadctrl[i] = new int[6];
 
   rec_writelim = writelim;
@@ -186,12 +195,17 @@ pthread_t *threads;
   newdata = new int[numbufs];
   for (i=0;i<numbufs;i++) newdata[i] = 0;
 
+  newstat = new int[numstatbufs];
+  for (i=0;i<numstatbufs;i++) newstat[i] = 0;
+
  threads = new pthread_t[numthreads];
 
  // mutex = calloc(numbufs,sizeof(*mutex));
  mutex = new pthread_mutex_t[numbufs];
 
  extmutex = new pthread_mutex_t[numextmutex];
+
+ statmutex = new pthread_mutex_t[numstatbufs];
 
   for (i=0;i<numbufs;i++){
       if(pthread_mutex_init(&mutex[i],NULL)!=0){
@@ -205,29 +219,41 @@ pthread_t *threads;
         return -1;
     }
   }
+  for (i=0;i<numstatbufs;i++){
+    if(pthread_mutex_init(&statmutex[i],NULL)!=0){
+        printf("\nExtMutex %i init error",i);
+        return -1;
+    }
+  }
 
   for(i=0;i<numthreads;i++){
       args[i].mutex = (void *)mutex;
       args[i].extmutex = (void *)extmutex;
+      args[i].statmutex = (void *)statmutex;
       args[i].dimensions = (void *)dim;
       args[i].threadcontrol = (void *)threadctrl[i];
       args[i].buffer = (void *)pbuffer;
       args[i].extbuffer = (void *)pextbuf;
+      args[i].statbuffer = (void *)pstatbuf;
       args[i].devname = (void *)device;
       args[i].filename = (void *)filename;
       args[i].newdata = (void *)newdata;
+      args[i].newstat = (void *)newstat;
       args[i].extstatus = (void *)extstatus;
   }
 
   rec_pbuffer = pbuffer;
   rec_pextbuf = pextbuf;
+  rec_pstatbuf = pstatbuf;
   rec_mutex = mutex;
   rec_extmutex = extmutex;
+  rec_statmutex = statmutex;
   rec_threads = threads;
   rec_threadctrl = threadctrl;
   rec_filename = filename;
   rec_device = device;
   rec_newdata = newdata;
+  rec_newstat = newstat;
   rec_dim = dim;
   rec_extstatus= extstatus;
   rec_args = args;
@@ -374,6 +400,32 @@ int NetInterface::PrintExtBuffer(int offset){
     return 0;
 }
 
+
+int NetInterface::GetStatBufferSize(){
+    return RX_STAT_PKT_SIZE;
+}
+
+int NetInterface::GetStatBuffer(unsigned char **statbuffer, int offset){
+    if (rx_thread_open == 0){
+        // parent_ui->setTranscript("Read thread Not Open");
+        return -1;
+    }
+    // parent_ui->setTranscript("Locking Mutex...");
+    pthread_mutex_lock(&rec_statmutex[0]);
+    if (rec_newstat[0]==1) {
+        memcpy(*statbuffer,rec_pextbuf[0]+offset,RX_STAT_PKT_SIZE-offset);
+        rec_newstat[0]==0;
+        // parent_ui->setTranscript(pktsample,RX_PKT_SIZE-offset);
+        pthread_mutex_unlock(&rec_statmutex[0]);
+        return RX_STAT_PKT_SIZE-offset;
+    }
+    else {
+        pthread_mutex_unlock(&rec_statmutex[0]);
+        // parent_ui->setTranscript("Ext Buffer Empty");
+        return 0;
+    }
+}
+
 int NetInterface::KillThreads(){
     char tempstr[128];
     int i,err;
@@ -441,19 +493,24 @@ int NetInterface::KillThreads(){
        delete[] rec_dim;
        delete[] rec_extstatus;
        delete[] rec_newdata;
+       delete[] rec_newstat;
       // delete [] rec_filename;
        delete [] rec_device;
        for (i=0;i<numbufs;i++) delete[] rec_pbuffer[i];
        for (i=0;i<numextbufs;i++) delete[] rec_pextbuf[i];
+       for (i=0;i<numstatbufs;i++) delete[] rec_pstatbuf[i];
        for (i=0;i<numthreads;i++) delete[] rec_threadctrl[i];
        for (i=0;i<numbufs;i++) pthread_mutex_destroy(&rec_mutex[i]);
        for (i=0;i<numextmutex;i++) pthread_mutex_destroy(&rec_extmutex[i]);
+       for (i=0;i<numstatbufs;i++) pthread_mutex_destroy(&rec_statmutex[i]);
        delete[] rec_pbuffer;
        delete[] rec_pextbuf;
+       delete[] rec_pstatbuf;
        delete[] rec_threadctrl;
        delete[] rec_threads;
        delete[] rec_mutex;
        delete[] rec_extmutex;
+       delete[] rec_statmutex;
        delete[] rec_args;
 
     }

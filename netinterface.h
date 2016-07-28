@@ -71,6 +71,9 @@ public:
     QString GetThreadStatus();
     int KillThreads();
     int PrintExtBuffer(int offset);
+    int GetStatBufferSize();
+    int GetStatBuffer(unsigned char **statbuffer, int offset);
+
     void setPromiscMode(int value);
     int IsListening();
     int IsRecording();
@@ -84,18 +87,22 @@ private:
     int has_mac,has_ip,has_status;
     int numbufs;    // Number of row buffers
     int numextbufs;    // Number of row external buffers
+    int numstatbufs;
     int numthreads;
     int numextmutex;
 
     unsigned char ** rec_pbuffer;
     unsigned char ** rec_pextbuf;
+    unsigned char ** rec_pstatbuf;
     pthread_mutex_t *rec_mutex;
     pthread_mutex_t *rec_extmutex;
+    pthread_mutex_t *rec_statmutex;
     pthread_t *rec_threads;
     int **rec_threadctrl;
     char *rec_filename;
     char *rec_device;
     int *rec_newdata;
+    int *rec_newstat;
     int *rec_dim;
     int *rec_extstatus;
     struct arg_struct *rec_args;

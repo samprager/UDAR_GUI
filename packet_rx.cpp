@@ -22,10 +22,10 @@ void pcap_fatal(const char *failed_in, const char *errbuf) {
 
 
 void *listenThread(void *args){
-  int i,ext_ind;
-  int numbufs,numextbufs,len,offset,trim,ext_buffer_empty;
+  int i,j,ext_ind;
+  int numbufs,numextbufs,len,offset,trim,ext_buffer_empty,numstatbufs,lenstat;
   int threadexit,wcount,count;
-  int *dim, *threadcontrol, *newdata, *extstatus;
+  int *dim, *threadcontrol, *newdata, *extstatus, *newstat;
   struct arg_struct *arguments = (struct arg_struct *)args;
   dim = (int *)arguments->dimensions;
 
@@ -33,25 +33,34 @@ void *listenThread(void *args){
   const u_char *packet;
   char errbuf[PCAP_ERRBUF_SIZE];
   char *device;
-  unsigned char **pbuffer, **pextbuffer;
+  unsigned char **pbuffer, **pextbuffer, **pstatbuffer;
   pcap_t *pcap_handle;
 
   pthread_mutex_t *mutex;
   pthread_mutex_t *extmutex;
+  pthread_mutex_t *statmutex;
 
   numbufs = dim[0];
   len = dim[1];
   offset = dim[2];
   trim = dim[3];
   numextbufs = dim[4];
+
+  numstatbufs = dim[5];
+  lenstat = dim[6];
   pbuffer = (unsigned char **)arguments->buffer;
   for (i=0;i<numbufs;i++){
       *(pbuffer+i) = *((unsigned char **)(arguments->buffer)+i);
   }
 
-  pextbuffer = (unsigned char **)arguments->extbuffer;
-  for (i=0;i<numextbufs;i++){
-      *(pextbuffer+i) = *((unsigned char **)(arguments->extbuffer)+i);
+  pstatbuffer = (unsigned char **)arguments->statbuffer;
+  for (i=0;i<numstatbufs;i++){
+      *(pstatbuffer+i) = *((unsigned char **)(arguments->statbuffer)+i);
+  }
+
+  pbuffer = (unsigned char **)arguments->buffer;
+  for (i=0;i<numbufs;i++){
+      *(pbuffer+i) = *((unsigned char **)(arguments->buffer)+i);
   }
   threadcontrol = (int *)arguments->threadcontrol;
 
@@ -59,12 +68,17 @@ void *listenThread(void *args){
 
   newdata = (int *)arguments->newdata;
 
+  newstat = (int *)arguments->newstat;
+
   mutex = (pthread_mutex_t *)arguments->mutex;
 
   extmutex = (pthread_mutex_t *)arguments->extmutex;
 
+  statmutex = (pthread_mutex_t *)arguments->statmutex;
+
   threadexit = 0;
   i = 0;
+  j = 0;
   count = 0;
   wcount = 0;
 
@@ -137,6 +151,13 @@ void *listenThread(void *args){
             i = (i+1)%numbufs;
             wcount++;
             threadcontrol[2] = wcount;
+        }
+        else if (header.caplen==lenstat){
+            pthread_mutex_lock(&statmutex[j]);
+            memcpy(pstatbuffer[j],packet+offset,header.caplen-offset-trim);
+            newstat[j] = 1;
+            pthread_mutex_unlock(&statmutex[j]);
+            j = (j+1)%numstatbufs;
         }
         else if (promisc_mode==1){
             int copylen = header.caplen;

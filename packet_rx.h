@@ -23,6 +23,7 @@
 #define RX_WRITE_LIM 10000
 #define RX_PKT_SIZE 528 //496
 #define RX_HEADER_SIZE 16
+#define RX_STAT_PKT_SIZE 80
 
 
 struct arg_struct{
@@ -31,9 +32,12 @@ struct arg_struct{
   void *dimensions;
   void *mutex;
   void *extmutex;
+  void *statmutex;
   void *buffer;
+  void *statbuffer;
   void *extbuffer;
   void *newdata;
+  void *newstat;
   void *threadcontrol;
   void *extstatus;
 };
