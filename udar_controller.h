@@ -49,6 +49,8 @@
 #define CHIRP_READ_COMMAND 0x52524343          //Ascii RRCC
 #define FMC150_READ_COMMAND 0x52524646         //Ascii RRFF
 
+#define PEAK_STAT_COMMAND 0x504B504B         //Ascii PKPK
+
 #define TX_PKT_CMD_REPEAT 2
 
 
@@ -67,6 +69,10 @@
 #define DEFAULT_NUM_SAMPLES 4096
 #define DEFAULT_CHIRP_TUNING_WORD 1
 #define DEFAULT_CHIRP_PHASE_ACCUM_LEN 16
+
+#define FFT_LEN 32768
+#define SPEED_OF_LIGHT 300000000.0
+#define RELATIVE_PERMITTIVITY 1.0
 
 #define PCAP_WRITE_LIM 5000
 #define PCAP_PKT_SIZE 496
@@ -101,6 +107,25 @@ struct fmc150_parameters {
     u_char code_check2;
     uint16_t code_check16;
     uint32_t control_word;
+};
+
+struct radar_status_payload {
+    uint32_t command_word;
+    uint16_t placeholder;
+    u_char   threshold_ctrl_i;
+    u_char   threshold_ctrl_q;
+    uint32_t adc_counter;
+    uint32_t glbl_counter;
+    uint32_t chirp_control_word;
+    uint32_t chirp_freq_off;
+    uint32_t chirp_tuning_word;
+    uint32_t chirp_num_samples;
+    uint32_t peak_index_q;
+    uint32_t peak_index_i;
+    uint64_t peak_value_q;
+    uint64_t peak_value_i;
+    uint32_t num_peaks_q;
+    uint32_t num_peaks_i;
 };
 
 namespace Ui {
@@ -159,9 +184,14 @@ private:
     QMap<QString,NetInterface*> interfaceMap;
     struct chirp_parameters chirp_params;
     struct fmc150_parameters fmc150_params;
+    struct radar_status_payload radar_status;
+    struct radar_status_payload radar_calib_zero;
     time_t start_time;
     struct timeval start_tp;
     QTimer *rx_status_timer;
+
+    uint32_t calib_index_i;
+    uint32_t calib_index_q;
 
     QVector<double> plotDataI;
     QVector<double> plotDataQ;
@@ -230,6 +260,8 @@ private slots:
     void on_plotOutputButton_clicked();
     void on_getThreadStatus_clicked();
     void on_killThread_clicked();
+    void on_calibrateIndexZero_pressed();
+    void on_resetIndexZero_pressed();
     void on_printExtBuf_clicked();
     void on_promiscModeCheckBox_stateChanged(int state);
 

@@ -1,4 +1,4 @@
-#include <QTGui>
+//#include <QTGui>
 #include "hexspinbox.h"
 
 HexSpinBox::HexSpinBox(QWidget *parent)

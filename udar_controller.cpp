@@ -71,7 +71,7 @@ void UDAR_Controller::connectSignals()
 
     rx_status_timer = new QTimer(this);
     connect(rx_status_timer, SIGNAL(timeout()), this, SLOT(updateRXStatus()));
-    rx_status_timer->start(1000);
+    rx_status_timer->start(100);
 
     //QMetaObject::connectSlotsByName(this);
 
@@ -231,6 +231,9 @@ void UDAR_Controller::controllerInit()
     storeFMC150Params();
 
     global_pkt_counter = 0;
+
+    memset(&radar_calib_zero,0,sizeof(radar_calib_zero));
+    memset(&radar_status,0,sizeof(radar_status));
 
     ui->transcript->setText("Initialization Complete...Controller Ready");
 
@@ -828,6 +831,7 @@ void UDAR_Controller::sendCommand(const QString name, uint32_t cmd)
     for (i=0;i<6;i++) header.ether_shost[i] = source_mac[i];
 
 
+    delete[] source_mac;
     ::close(fd);
 
     // Combine the Ethernet header and ARP request into a contiguous block.
@@ -974,6 +978,7 @@ void UDAR_Controller::sendCommand(const QString name)
     u_char *source_mac = currInterface->GetMac();
     for (i=0;i<6;i++) header.ether_shost[i] = source_mac[i];
 
+    delete[] source_mac;
 
     ::close(fd);
 
@@ -1118,6 +1123,7 @@ void UDAR_Controller::sendTestCommand(const QString name)
     for (i=0;i<6;i++) header.ether_shost[i] = source_mac[i];
 
 
+    delete[] source_mac;
     ::close(fd);
 
     // Combine the Ethernet header and ARP request into a contiguous block.
@@ -1181,7 +1187,7 @@ QStringList UDAR_Controller::getNetworkInterfaces(){
     if (current == NULL) {
         printf("No interfaces found\n");
     }
-
+    sprintf(name_prev,"");
     while (current != NULL) {
         if(current->ifa_flags & IFF_UP){
             if(strcmp(name_prev,current->ifa_name)){
@@ -1266,7 +1272,7 @@ QStringList UDAR_Controller::getNetworkInterfaces(){
 
 void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
     FILE *fp,*fp_c,*fp_iq;
-    int i;    // 0: dump udp packet, 1: dump data at offset
+    int i,err;    // 0: dump udp packet, 1: dump data at offset
     char *filenameC,*filenameIQ;
     u_char *packet_data;
     uint32_t *counter = NULL;
@@ -1300,6 +1306,14 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
         setTranscript("Error: Unable to open file..");
         return;
     }
+    pthread_mutex_t filemutex;
+    int dif_filename = strcmp(argv[0], interfaceMap[ui->networkInterfaces->currentText()]->GetRxFilename());
+    int file_inactive = interfaceMap[ui->networkInterfaces->currentText()]->GetFileMutex(filemutex);
+    bool need_mutex = ((file_inactive == 0)&(dif_filename == 0));
+
+    if (need_mutex){
+        pthread_mutex_lock(&filemutex);
+    }
     fseek(fp, 0, SEEK_END);
     file_len = ftell(fp);
     rewind(fp);
@@ -1308,6 +1322,9 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
         //fprintf(stderr,"Unable to open file\n");
         //exit(1);
         setTranscript("File is empty... No data found");
+        if (need_mutex){
+            pthread_mutex_unlock(&filemutex);
+        }
         fclose(fp);
         return;
     }
@@ -1315,10 +1332,18 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
     packet_data = new u_char[file_len];
     if(fread(packet_data,1,file_len,fp)!=file_len){
         fprintf(stderr, "File read error\n");
+        if (need_mutex){
+            pthread_mutex_unlock(&filemutex);
+        }
         fclose(fp);
         exit(1);
     }
+    if (need_mutex){
+        pthread_mutex_unlock(&filemutex);
+    }
     fclose(fp);
+
+
     int psize = RX_PKT_SIZE-RX_HEADER_SIZE;
     wcount = file_len/(RX_PKT_SIZE-RX_HEADER_SIZE);
 
@@ -2009,19 +2034,18 @@ void UDAR_Controller::on_listenButton_clicked(){
 
     int thread_err = interfaceMap[if_name_qstr]->initRxThreads(fname,outdir,writeToFile,writelimit);
     interfaceMap[if_name_qstr]->setPromiscMode(ui->promiscModeCheckBox->isChecked());
+
+    char tempstr[STR_SIZE];
     if (thread_err == 0){
-        char tempstr[STR_SIZE];
         sprintf(tempstr,"Started Listening on device %s...",if_name);
         setTranscript(tempstr);
      }
     else if (thread_err == 1){
-        char tempstr[STR_SIZE];
         sprintf(tempstr,"Already listening on device %s",if_name);
         setTranscript(tempstr);
     }
     else
     {
-        char tempstr[STR_SIZE];
         sprintf(tempstr,"Read Thread Init Failed for device %s. Returned %i",if_name,thread_err);
         setTranscript(tempstr);
     }
@@ -2038,12 +2062,74 @@ uint32_t UDAR_Controller::genCommandIdentifier(){
     ms = ms - ms_start;
     return ms;
 }
-
+void UDAR_Controller::on_calibrateIndexZero_pressed(){
+    unsigned char *statbuf;
+    int statlen = interfaceMap[ui->networkInterfaces->currentText()]->GetStatBuffer(&statbuf,RX_HEADER_SIZE);
+    if (statlen == (sizeof(radar_status))){
+        memcpy(&radar_calib_zero,statbuf,sizeof(radar_calib_zero));
+    }
+    setTranscript(QString("Init Calibration Set to:"));
+    setTranscript((u_char*)&radar_calib_zero,sizeof(radar_calib_zero));
+    delete[] statbuf;
+}
+void UDAR_Controller::on_resetIndexZero_pressed(){
+    memset(&radar_calib_zero,0,sizeof(radar_calib_zero));
+    setTranscript(QString("Sounder Calibration Zero Reset to:"));
+    setTranscript((u_char*)&radar_calib_zero,sizeof(radar_calib_zero));
+}
 void UDAR_Controller::updateRXStatus(){
- //   if (interfaceMap[ui->networkInterfaces->currentText()]->IsListening()){
-        QString qstr = interfaceMap[ui->networkInterfaces->currentText()]->GetThreadStatus();
-        setStatusTranscript(qstr);
-//    }
+     QString qstr = interfaceMap[ui->networkInterfaces->currentText()]->GetThreadStatus();
+    // if (interfaceMap[ui->networkInterfaces->currentText()]->IsListening()){
+    QString qtempstr;
+    unsigned char *statbuf;
+    int statlen = interfaceMap[ui->networkInterfaces->currentText()]->GetStatBuffer(&statbuf,RX_HEADER_SIZE);
+    if (statlen == (sizeof(radar_status))){
+         memcpy(&radar_status,statbuf,sizeof(radar_status));
+
+         double tuning_word_coeff = (double)radar_status.chirp_tuning_word;
+         double num_samples = (double)radar_status.chirp_num_samples+1.0;
+         double freq_offset = (double)radar_status.chirp_freq_off;
+         int n = ui->phaseAccLen_spinBox->value();
+         double fClock = (1000000.0)*ui->clockFreq_dSpinBox->value();    //Hz
+         double two_pow_n = (double)(1<<n);
+
+         double BW = (num_samples*fClock*tuning_word_coeff)/(two_pow_n);     //Hz
+         double period = num_samples/fClock;                      //sec
+         double slope = BW/period;                               //Hz/Sec
+
+         double rel_perm = ui->relPermittivity_dSpinBox->value();
+
+         double index_i = (double)radar_status.peak_index_i-(double)radar_calib_zero.peak_index_i;
+         double index_q = (double)radar_status.peak_index_q-(double)radar_calib_zero.peak_index_q;
+
+         double fshift_i = index_i*fClock/FFT_LEN;
+         double fshift_q = index_q*fClock/FFT_LEN;
+         double tshift_i = fshift_i/slope;
+         double tshift_q = fshift_q/slope;
+         double range_i = (double)(SPEED_OF_LIGHT/sqrt(rel_perm))*tshift_i/2.0;
+         double range_q = (double)(SPEED_OF_LIGHT/sqrt(rel_perm))*tshift_q/2.0;
+
+         qtempstr.sprintf("\n----------------- I Channel [%u Detections] -----------------",radar_status.num_peaks_i);
+         qstr.append(qtempstr);
+         qtempstr.sprintf("\nRange:\t%lf(m)\nShift:\t%lf(us),%lf(MHz)",range_i,1000000.0*tshift_i,fshift_i/1000000.0);
+         qstr.append(qtempstr);
+         qtempstr.sprintf("\nPeak Index:\t%u (zeroed to %u) \nPeak Mag:\t%u",radar_status.peak_index_i,radar_calib_zero.peak_index_i,(uint32_t)sqrt(radar_status.peak_value_i));
+         qstr.append(qtempstr);
+         qtempstr.sprintf("\n----------------- Q Channel [%u Detections] -----------------",radar_status.num_peaks_q);
+         qstr.append(qtempstr);
+         qtempstr.sprintf("\nRange:\t%lf(m)\nShift:\t%lf(us),%lf(MHz)",range_q,1000000.0*tshift_q,fshift_q/1000000.0);
+         qstr.append(qtempstr);
+         qtempstr.sprintf("\nPeak Index:\t%u (zeroed to %u) \nPeak Mag:\t%u",radar_status.peak_index_q,radar_calib_zero.peak_index_q,(uint32_t)sqrt(radar_status.peak_value_q));
+         qstr.append(qtempstr);
+         qtempstr.sprintf("\n--------------------- Decoded Parameters --------------------");
+         qstr.append(qtempstr);
+         qtempstr.sprintf("\nctrl_word:%u, freq_off:%u, tuning word:%u, num_samples:%u",radar_status.chirp_control_word,radar_status.chirp_freq_off,radar_status.chirp_tuning_word,radar_status.chirp_num_samples+1);
+         qstr.append(qtempstr);
+         qtempstr.sprintf("\nadc_counter:%u. \tglbl_counter:%u",radar_status.adc_counter,radar_status.glbl_counter);
+         qstr.append(qtempstr);
+    }
+    setStatusTranscript(qstr);
+    delete[] statbuf;
 }
 
 void UDAR_Controller::on_promiscModeCheckBox_stateChanged(int state){
@@ -2051,26 +2137,66 @@ void UDAR_Controller::on_promiscModeCheckBox_stateChanged(int state){
 }
 
 void UDAR_Controller::on_getThreadStatus_clicked(){
+    char tempstr[STR_SIZE];
+    QString qtempstr;
     QString qstr = interfaceMap[ui->networkInterfaces->currentText()]->GetThreadStatus();
     setTranscript(qstr);
+
+    int offset = 0;
     int statbufsize = interfaceMap[ui->networkInterfaces->currentText()]->GetStatBufferSize();
-    unsigned char *statbuf = new unsigned char[statbufsize];
-    int err = interfaceMap[ui->networkInterfaces->currentText()]->GetStatBuffer(&statbuf,0);
-    if(err == statbufsize){
-        setTranscript(statbuf,statbufsize);
+    unsigned char *statbuf;
+    int err = interfaceMap[ui->networkInterfaces->currentText()]->GetStatBuffer(&statbuf,offset);
+    if(err == (statbufsize-offset)){
+        setTranscript(statbuf,statbufsize-offset);
     }
     else {
-        char tempstr[STR_SIZE];
-        sprintf(tempstr,"No Stat Buf update available. Returned: %i",err);
-        setTranscript(tempstr);
+        qtempstr.sprintf("No Stat Buf update available. Returned: %i",err);
+        setTranscript(qtempstr);
+    }
+
+    if (err == (sizeof(radar_status)+RX_HEADER_SIZE)){
+        memcpy(&radar_status,statbuf+RX_HEADER_SIZE,sizeof(radar_status));
+        qtempstr.sprintf("command_word:0x%02x.\nplaceholder: 0x%02x",radar_status.command_word,radar_status.placeholder);
+        setTranscript(qtempstr);
+        qtempstr.sprintf("thresh_ctrl_i:0x%02x. \nthresh_ctrl_q: 0x%02x",radar_status.threshold_ctrl_i,radar_status.threshold_ctrl_q);
+        setTranscript(qtempstr);
+        qtempstr.sprintf("adc_counter: %u \nglbl_counter: %u",radar_status.adc_counter,radar_status.glbl_counter);
+        setTranscript(qtempstr);
+        qtempstr.sprintf("chirp_ctrl: %u \nchirp_freq_off: %u",radar_status.chirp_control_word,radar_status.chirp_freq_off);
+        setTranscript(qtempstr);
+        qtempstr.sprintf("chirp_tuning word: %u \nchirp_num_samples: %u",radar_status.chirp_tuning_word,radar_status.chirp_num_samples);
+        setTranscript(qtempstr);
+        qtempstr.sprintf("peak_index_q: %u \npeak_index_i: %u",radar_status.peak_index_q,radar_status.peak_index_i);
+        setTranscript(qtempstr);
+        qtempstr.sprintf("peak_value_q: %ul\npeak_value_i: %ul",radar_status.peak_value_q,radar_status.peak_value_i);
+        setTranscript(qtempstr);
+        qtempstr.sprintf("num_peaks_q: %u \nnum_peaks_i: %u",radar_status.num_peaks_q,radar_status.num_peaks_i);
+        setTranscript(qtempstr);
+      }
+    else {
+        qtempstr.sprintf("Statbuf size mismatch. bufsize: %i, radar_status size: %i, header size: %i",err,sizeof(radar_status),RX_HEADER_SIZE);
+        setTranscript(qtempstr);
     }
     delete[] statbuf;
 }
 
 void UDAR_Controller::on_printExtBuf_clicked(){
+    char tempstr[STR_SIZE];
    int offset = RX_HEADER_SIZE;
    if (ui->printHeaderCheckBox->isChecked()) offset = 0;
-   int err = interfaceMap[ui->networkInterfaces->currentText()]->PrintExtBuffer(offset);
+  // int err = interfaceMap[ui->networkInterfaces->currentText()]->PrintExtBuffer(offset);
+   int extbufsize = interfaceMap[ui->networkInterfaces->currentText()]->GetExtBufferSize();
+   unsigned char *extbuf;
+   int err = interfaceMap[ui->networkInterfaces->currentText()]->GetExtBuffer(&extbuf,offset);
+   if(err == (extbufsize-offset)){
+       setTranscript(extbuf,extbufsize-offset);
+   }
+   else {
+       sprintf(tempstr,"No Ext Buf update available. Returned: %i",err);
+       setTranscript(tempstr);
+   }
+
+   delete[] extbuf;
 }
 
 void UDAR_Controller::on_killThread_clicked(){
@@ -2082,40 +2208,49 @@ void UDAR_Controller::on_testButton_clicked(){
 }
 
 void UDAR_Controller::on_plotOutputButton_clicked(){
-    QString in_fname_qstr = ui->recOutputFilename->text();
+    QString fname_qstr = ui->recOutputFilename->text();
+    QString if_name_qstr = ui->networkInterfaces->currentText();
     QString out_dir_qstr = ui->recOutputDirectory->text();
-    QByteArray in_ba = in_fname_qstr.toLatin1();
-     QByteArray dir_ba = out_dir_qstr.toLatin1();
-    const char* in_fn = in_ba.data();
-    const char* if_name = ui->networkInterfaces->currentText().toLatin1().data();
-    char* out_dir = dir_ba.data();
-    char root_fname[STR_SIZE];
-    char in_fname[STR_SIZE];
-    char out_fname_C[STR_SIZE];
-    char out_fname_IQ[STR_SIZE];
+    QByteArray fname_ba = fname_qstr.toLatin1();
+    QByteArray out_dir_ba = out_dir_qstr.toLatin1();
 
-    sscanf(in_fn,"%[^.]",root_fname);
+    char* out_dir = out_dir_ba.data();
+    char root_fname[STR_SIZE];
+
+     QString root_fname_qstr;
+     QString in_fname;
+     QString out_fname_C;
+     QString out_fname_IQ;
+
+     sscanf(fname_ba.data(),"%[^.]",root_fname);
+     root_fname_qstr.sprintf("%s",root_fname);
 
     if (ui->appendInterfaceCheckBox->isChecked()){
-        sprintf(in_fname,"%s%s_%s.bin",out_dir,if_name,root_fname);
-        sprintf(out_fname_C,"%s%s_%sC.bin",out_dir,if_name,root_fname);
-        sprintf(out_fname_IQ,"%s%s_%sIQ.bin",out_dir,if_name,root_fname);
+       in_fname = out_dir_qstr + if_name_qstr + "_" + root_fname_qstr + ".bin";
+       out_fname_C = out_dir_qstr + if_name_qstr + "_" + root_fname_qstr + "C.bin";
+       out_fname_IQ = out_dir_qstr + if_name_qstr + "_" + root_fname_qstr + "IQ.bin";
     }
     else{
-    sprintf(in_fname,"%s%s.bin",out_dir,root_fname);
-    sprintf(out_fname_C,"%s%sC.bin",out_dir,root_fname);
-    sprintf(out_fname_IQ,"%s%sIQ.bin",out_dir,root_fname);
+        in_fname = out_dir_qstr + root_fname_qstr + ".bin";
+        out_fname_C = out_dir_qstr + root_fname_qstr + "C.bin";
+        out_fname_IQ = out_dir_qstr + root_fname_qstr + "IQ.bin";
     }
 
+    setTranscript("Decoding and Plotting Data from:");
     setTranscript(in_fname);
+    setTranscript("Decoded Data Saved to:");
     setTranscript(out_fname_C);
     setTranscript(out_fname_IQ);
 
     int numargs = 3;
     char *strptr[numargs];
-    strptr[0] = in_fname;
-    strptr[1] = out_fname_C;
-    strptr[2] = out_fname_IQ;
+    QByteArray in_fname_ba = in_fname.toLatin1();
+    QByteArray out_fname_C_ba = out_fname_C.toLatin1();
+    QByteArray out_fname_IQ_ba = out_fname_IQ.toLatin1();
+
+    strptr[0] = in_fname_ba.data();
+    strptr[1] = out_fname_C_ba.data();
+    strptr[2] = out_fname_IQ_ba.data();
 
     decode_plot(numargs,strptr,out_dir);
 
@@ -2125,7 +2260,9 @@ void UDAR_Controller::on_plotOutputButton_clicked(){
 }
 
 void UDAR_Controller::setStatusTranscript(QString text){
+    int position = ui->statusTranscript->verticalScrollBar()->value();
     ui->statusTranscript->setText(text);
+    ui->statusTranscript->verticalScrollBar()->setValue(position);
 }
 
 void UDAR_Controller::setTranscript(QString text){
@@ -2134,7 +2271,9 @@ void UDAR_Controller::setTranscript(QString text){
 }
 
 void UDAR_Controller::setTranscript(char * text){
-    ui->transcript->append(text);
+    QString s;
+    s.sprintf("%s",text);
+    ui->transcript->append(s);
     fixTranscriptPosition();
 }
 
@@ -2154,21 +2293,27 @@ void UDAR_Controller::setTranscript(double data){
     fixTranscriptPosition();
 }
 void UDAR_Controller::setTranscript(u_char *data, int len){
-    char text[STR_SIZE];
+ //   char text[STR_SIZE];
+    QString s;
+    QString text;
+    QString result = "";
     int i;
-    sprintf(text," %02x",data[0]);
+
+    s.sprintf("%02x ",data[0]);
+    result.append(s);
     for (i=1;i<len;i++){
-        sprintf(text,"%s %02x",text,data[i]);
+        s.sprintf("%02x ",data[i]);
+        result.append(s);
         if ((i+1)%16 == 0){
-            ui->transcript->append(text);
-            sprintf(text,"");
+            result.append("\n");
         }
         else if((i+1)%8==0){
-            sprintf(text,"%s  ",text);
+            result.append("   ");
         }
 
     }
-   ui->transcript->append(text);
+   //ui->transcript->append(text);
+    ui->transcript->append(result);
    fixTranscriptPosition();
 }
 void UDAR_Controller::setTranscript(u_char * text){
@@ -2191,8 +2336,8 @@ void UDAR_Controller::setTranscript(u_char * text){
    fixTranscriptPosition();
 }
 void UDAR_Controller::fixTranscriptPosition(){
-    //ui->transcript->moveCursor(QTextCursor::End);
-    //ui->transcript->verticalScrollBar()->setValue(ui->transcript->verticalScrollBar()->maximum());
+    ui->transcript->moveCursor(QTextCursor::End);
+    ui->transcript->verticalScrollBar()->setValue(ui->transcript->verticalScrollBar()->maximum());
 }
 
 void UDAR_Controller::on_hex2dec_in_returnPressed(){

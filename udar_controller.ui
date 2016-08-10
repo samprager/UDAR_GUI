@@ -35,7 +35,7 @@
        <x>0</x>
        <y>8</y>
        <width>967</width>
-       <height>179</height>
+       <height>141</height>
       </rect>
      </property>
      <property name="currentIndex">
@@ -61,8 +61,8 @@
       <widget class="QLabel" name="label_8">
        <property name="geometry">
         <rect>
-         <x>98</x>
-         <y>8</y>
+         <x>150</x>
+         <y>0</y>
          <width>101</width>
          <height>16</height>
         </rect>
@@ -103,8 +103,8 @@
       <widget class="QDoubleSpinBox" name="minFreq_dSpinBox">
        <property name="geometry">
         <rect>
-         <x>98</x>
-         <y>28</y>
+         <x>150</x>
+         <y>20</y>
          <width>101</width>
          <height>24</height>
         </rect>
@@ -141,8 +141,8 @@
       <widget class="QLabel" name="label_7">
        <property name="geometry">
         <rect>
-         <x>218</x>
-         <y>8</y>
+         <x>270</x>
+         <y>0</y>
          <width>111</width>
          <height>16</height>
         </rect>
@@ -154,8 +154,8 @@
       <widget class="QDoubleSpinBox" name="chirpSlope_dSpinBox">
        <property name="geometry">
         <rect>
-         <x>228</x>
-         <y>28</y>
+         <x>280</x>
+         <y>20</y>
          <width>91</width>
          <height>24</height>
         </rect>
@@ -173,8 +173,8 @@
       <widget class="QLabel" name="label_13">
        <property name="geometry">
         <rect>
-         <x>238</x>
-         <y>58</y>
+         <x>290</x>
+         <y>50</y>
          <width>81</width>
          <height>16</height>
         </rect>
@@ -186,8 +186,8 @@
       <widget class="QDoubleSpinBox" name="chirpTime_dSpinBox">
        <property name="geometry">
         <rect>
-         <x>238</x>
-         <y>78</y>
+         <x>290</x>
+         <y>70</y>
          <width>81</width>
          <height>24</height>
         </rect>
@@ -205,8 +205,8 @@
       <widget class="QDoubleSpinBox" name="chirpBW_dSpinBox">
        <property name="geometry">
         <rect>
-         <x>98</x>
-         <y>78</y>
+         <x>150</x>
+         <y>70</y>
          <width>101</width>
          <height>24</height>
         </rect>
@@ -224,8 +224,8 @@
       <widget class="QLabel" name="label_12">
        <property name="geometry">
         <rect>
-         <x>98</x>
-         <y>58</y>
+         <x>150</x>
+         <y>50</y>
          <width>101</width>
          <height>16</height>
         </rect>
@@ -400,8 +400,8 @@
       <widget class="QPushButton" name="chirpParamsGenButton">
        <property name="geometry">
         <rect>
-         <x>162</x>
-         <y>106</y>
+         <x>20</x>
+         <y>20</y>
          <width>113</width>
          <height>32</height>
         </rect>
@@ -413,8 +413,8 @@
       <widget class="QPushButton" name="chirpParamsResetButton">
        <property name="geometry">
         <rect>
-         <x>650</x>
-         <y>104</y>
+         <x>20</x>
+         <y>60</y>
          <width>113</width>
          <height>32</height>
         </rect>
@@ -445,7 +445,7 @@
        <property name="geometry">
         <rect>
          <x>170</x>
-         <y>44</y>
+         <y>30</y>
          <width>87</width>
          <height>24</height>
         </rect>
@@ -467,7 +467,7 @@
        <property name="geometry">
         <rect>
          <x>160</x>
-         <y>24</y>
+         <y>10</y>
          <width>101</width>
          <height>16</height>
         </rect>
@@ -480,7 +480,7 @@
        <property name="geometry">
         <rect>
          <x>288</x>
-         <y>42</y>
+         <y>28</y>
          <width>87</width>
          <height>24</height>
         </rect>
@@ -502,7 +502,7 @@
        <property name="geometry">
         <rect>
          <x>278</x>
-         <y>22</y>
+         <y>8</y>
          <width>101</width>
          <height>16</height>
         </rect>
@@ -515,7 +515,7 @@
        <property name="geometry">
         <rect>
          <x>52</x>
-         <y>92</y>
+         <y>78</y>
          <width>87</width>
          <height>24</height>
         </rect>
@@ -537,7 +537,7 @@
        <property name="geometry">
         <rect>
          <x>42</x>
-         <y>72</y>
+         <y>58</y>
          <width>101</width>
          <height>16</height>
         </rect>
@@ -550,7 +550,7 @@
        <property name="geometry">
         <rect>
          <x>168</x>
-         <y>90</y>
+         <y>76</y>
          <width>87</width>
          <height>24</height>
         </rect>
@@ -572,7 +572,7 @@
        <property name="geometry">
         <rect>
          <x>158</x>
-         <y>70</y>
+         <y>56</y>
          <width>101</width>
          <height>16</height>
         </rect>
@@ -585,7 +585,7 @@
        <property name="geometry">
         <rect>
          <x>286</x>
-         <y>88</y>
+         <y>74</y>
          <width>87</width>
          <height>24</height>
         </rect>
@@ -607,7 +607,7 @@
        <property name="geometry">
         <rect>
          <x>276</x>
-         <y>68</y>
+         <y>54</y>
          <width>101</width>
          <height>16</height>
         </rect>
@@ -619,8 +619,8 @@
       <widget class="QRadioButton" name="fmc150_read_radioButton">
        <property name="geometry">
         <rect>
-         <x>418</x>
-         <y>74</y>
+         <x>428</x>
+         <y>36</y>
          <width>59</width>
          <height>20</height>
         </rect>
@@ -635,8 +635,8 @@
       <widget class="QRadioButton" name="fmc150_write_radioButton">
        <property name="geometry">
         <rect>
-         <x>420</x>
-         <y>48</y>
+         <x>430</x>
+         <y>10</y>
          <width>59</width>
          <height>20</height>
         </rect>
@@ -654,8 +654,8 @@
       <widget class="QRadioButton" name="fmc150_CDC_radioButton">
        <property name="geometry">
         <rect>
-         <x>514</x>
-         <y>24</y>
+         <x>510</x>
+         <y>0</y>
          <width>85</width>
          <height>20</height>
         </rect>
@@ -670,8 +670,8 @@
       <widget class="QRadioButton" name="fmc150_ADS_radioButton">
        <property name="geometry">
         <rect>
-         <x>514</x>
-         <y>52</y>
+         <x>510</x>
+         <y>28</y>
          <width>85</width>
          <height>20</height>
         </rect>
@@ -686,8 +686,8 @@
       <widget class="QRadioButton" name="fmc150_DAC_radioButton">
        <property name="geometry">
         <rect>
-         <x>514</x>
-         <y>76</y>
+         <x>510</x>
+         <y>52</y>
          <width>85</width>
          <height>20</height>
         </rect>
@@ -705,8 +705,8 @@
       <widget class="QRadioButton" name="fmc150_AMC_radioButton">
        <property name="geometry">
         <rect>
-         <x>516</x>
-         <y>100</y>
+         <x>512</x>
+         <y>76</y>
          <width>85</width>
          <height>20</height>
         </rect>
@@ -1234,10 +1234,10 @@
     <widget class="QTabWidget" name="tabWidget_b">
      <property name="geometry">
       <rect>
-       <x>468</x>
-       <y>190</y>
-       <width>497</width>
-       <height>145</height>
+       <x>544</x>
+       <y>174</y>
+       <width>421</width>
+       <height>161</height>
       </rect>
      </property>
      <property name="currentIndex">
@@ -1376,9 +1376,9 @@
       <widget class="QCheckBox" name="decodeCounterCheckBox">
        <property name="geometry">
         <rect>
-         <x>366</x>
-         <y>56</y>
-         <width>109</width>
+         <x>288</x>
+         <y>52</y>
+         <width>103</width>
          <height>20</height>
         </rect>
        </property>
@@ -1448,8 +1448,8 @@
       <widget class="QRadioButton" name="adc_data_u_radioButton">
        <property name="geometry">
         <rect>
-         <x>348</x>
-         <y>32</y>
+         <x>204</x>
+         <y>34</y>
          <width>21</width>
          <height>20</height>
         </rect>
@@ -1464,8 +1464,8 @@
       <widget class="QRadioButton" name="dac_data_u_radioButton">
        <property name="geometry">
         <rect>
-         <x>348</x>
-         <y>52</y>
+         <x>204</x>
+         <y>54</y>
          <width>17</width>
          <height>20</height>
         </rect>
@@ -1483,8 +1483,8 @@
       <widget class="QRadioButton" name="adc_counter_u_radioButton">
        <property name="geometry">
         <rect>
-         <x>348</x>
-         <y>72</y>
+         <x>204</x>
+         <y>74</y>
          <width>21</width>
          <height>20</height>
         </rect>
@@ -1502,8 +1502,8 @@
       <widget class="QRadioButton" name="global_counter_u_radioButton">
        <property name="geometry">
         <rect>
-         <x>348</x>
-         <y>92</y>
+         <x>204</x>
+         <y>94</y>
          <width>21</width>
          <height>20</height>
         </rect>
@@ -1518,8 +1518,8 @@
       <widget class="QRadioButton" name="adc_data_l_radioButton">
        <property name="geometry">
         <rect>
-         <x>378</x>
-         <y>32</y>
+         <x>234</x>
+         <y>34</y>
          <width>100</width>
          <height>20</height>
         </rect>
@@ -1537,8 +1537,8 @@
       <widget class="QRadioButton" name="global_counter_l_radioButton">
        <property name="geometry">
         <rect>
-         <x>376</x>
-         <y>92</y>
+         <x>232</x>
+         <y>94</y>
          <width>100</width>
          <height>20</height>
         </rect>
@@ -1553,8 +1553,8 @@
       <widget class="QRadioButton" name="adc_counter_l_radioButton">
        <property name="geometry">
         <rect>
-         <x>376</x>
-         <y>72</y>
+         <x>232</x>
+         <y>74</y>
          <width>100</width>
          <height>20</height>
         </rect>
@@ -1569,8 +1569,8 @@
       <widget class="QRadioButton" name="dac_data_l_radioButton">
        <property name="geometry">
         <rect>
-         <x>378</x>
-         <y>52</y>
+         <x>234</x>
+         <y>54</y>
          <width>100</width>
          <height>20</height>
         </rect>
@@ -1585,8 +1585,8 @@
       <widget class="QLabel" name="label_36">
        <property name="geometry">
         <rect>
-         <x>326</x>
-         <y>0</y>
+         <x>182</x>
+         <y>2</y>
          <width>95</width>
          <height>16</height>
         </rect>
@@ -1598,8 +1598,8 @@
       <widget class="QLabel" name="label_37">
        <property name="geometry">
         <rect>
-         <x>340</x>
-         <y>18</y>
+         <x>196</x>
+         <y>20</y>
          <width>39</width>
          <height>16</height>
         </rect>
@@ -1611,8 +1611,8 @@
       <widget class="QLabel" name="label_38">
        <property name="geometry">
         <rect>
-         <x>374</x>
-         <y>18</y>
+         <x>230</x>
+         <y>20</y>
          <width>39</width>
          <height>16</height>
         </rect>
@@ -1728,7 +1728,7 @@
         <rect>
          <x>14</x>
          <y>28</y>
-         <width>303</width>
+         <width>285</width>
          <height>21</height>
         </rect>
        </property>
@@ -1765,9 +1765,9 @@
       <widget class="QPushButton" name="readPcapButton">
        <property name="geometry">
         <rect>
-         <x>338</x>
+         <x>304</x>
          <y>22</y>
-         <width>113</width>
+         <width>95</width>
          <height>32</height>
         </rect>
        </property>
@@ -1824,8 +1824,8 @@
     <widget class="QLabel" name="label_5">
      <property name="geometry">
       <rect>
-       <x>8</x>
-       <y>192</y>
+       <x>10</x>
+       <y>150</y>
        <width>81</width>
        <height>16</height>
       </rect>
@@ -1838,7 +1838,7 @@
      <property name="geometry">
       <rect>
        <x>8</x>
-       <y>212</y>
+       <y>166</y>
        <width>109</width>
        <height>26</height>
       </rect>
@@ -1848,9 +1848,9 @@
      <property name="geometry">
       <rect>
        <x>12</x>
-       <y>252</y>
-       <width>321</width>
-       <height>75</height>
+       <y>196</y>
+       <width>401</width>
+       <height>137</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1860,9 +1860,9 @@
     <widget class="QPushButton" name="killThread">
      <property name="geometry">
       <rect>
-       <x>346</x>
-       <y>250</y>
-       <width>94</width>
+       <x>428</x>
+       <y>304</y>
+       <width>101</width>
        <height>32</height>
       </rect>
      </property>
@@ -1873,8 +1873,8 @@
     <widget class="QPushButton" name="listenButton">
      <property name="geometry">
       <rect>
-       <x>128</x>
-       <y>206</y>
+       <x>120</x>
+       <y>160</y>
        <width>94</width>
        <height>32</height>
       </rect>
@@ -1886,8 +1886,8 @@
     <widget class="QPushButton" name="writeButton">
      <property name="geometry">
       <rect>
-       <x>224</x>
-       <y>206</y>
+       <x>220</x>
+       <y>160</y>
        <width>94</width>
        <height>32</height>
       </rect>
@@ -1899,8 +1899,8 @@
     <widget class="QRadioButton" name="injectFmc150_radioButton">
      <property name="geometry">
       <rect>
-       <x>324</x>
-       <y>216</y>
+       <x>330</x>
+       <y>172</y>
        <width>78</width>
        <height>20</height>
       </rect>
@@ -1918,8 +1918,8 @@
     <widget class="QRadioButton" name="injectChirp_radioButton">
      <property name="geometry">
       <rect>
-       <x>324</x>
-       <y>194</y>
+       <x>330</x>
+       <y>150</y>
        <width>78</width>
        <height>20</height>
       </rect>
@@ -1937,14 +1937,75 @@
     <widget class="QPushButton" name="plotOutputButton">
      <property name="geometry">
       <rect>
-       <x>346</x>
-       <y>288</y>
-       <width>107</width>
+       <x>428</x>
+       <y>274</y>
+       <width>101</width>
        <height>32</height>
       </rect>
      </property>
      <property name="text">
       <string>Plot Data</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_33">
+     <property name="geometry">
+      <rect>
+       <x>440</x>
+       <y>152</y>
+       <width>105</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Relative Permittivity</string>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="relPermittivity_dSpinBox">
+     <property name="geometry">
+      <rect>
+       <x>444</x>
+       <y>170</y>
+       <width>73</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <property name="decimals">
+      <number>3</number>
+     </property>
+     <property name="maximum">
+      <double>1000000000.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.100000000000000</double>
+     </property>
+     <property name="value">
+      <double>1.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="calibrateIndexZero">
+     <property name="geometry">
+      <rect>
+       <x>420</x>
+       <y>194</y>
+       <width>113</width>
+       <height>33</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Calibrate/Zero</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="resetIndexZero">
+     <property name="geometry">
+      <rect>
+       <x>420</x>
+       <y>220</y>
+       <width>113</width>
+       <height>33</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Reset Calibration</string>
      </property>
     </widget>
    </widget>
@@ -1992,11 +2053,11 @@
  <resources/>
  <connections/>
  <buttongroups>
+  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup_3"/>
   <buttongroup name="buttonGroup_4"/>
   <buttongroup name="buttonGroup_5"/>
   <buttongroup name="buttonGroup_6"/>
-  <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>

@@ -39,6 +39,8 @@
 
 #include <QString>
 
+#define WR_THREAD_INDEX 1
+
 class UDAR_Controller;
 
 class NetInterface
@@ -70,7 +72,11 @@ public:
     int initWrThread();
     QString GetThreadStatus();
     int KillThreads();
+    int GetFileMutex(pthread_mutex_t &fmutex);
+    char *GetRxFilename();
     int PrintExtBuffer(int offset);
+    int GetExtBufferSize();
+    int GetExtBuffer(u_char **extbuffer,int offset);
     int GetStatBufferSize();
     int GetStatBuffer(unsigned char **statbuffer, int offset);
 
@@ -90,6 +96,7 @@ private:
     int numstatbufs;
     int numthreads;
     int numextmutex;
+    int numfilemutex;
 
     unsigned char ** rec_pbuffer;
     unsigned char ** rec_pextbuf;
@@ -97,6 +104,7 @@ private:
     pthread_mutex_t *rec_mutex;
     pthread_mutex_t *rec_extmutex;
     pthread_mutex_t *rec_statmutex;
+    pthread_mutex_t *rec_filemutex;
     pthread_t *rec_threads;
     int **rec_threadctrl;
     char *rec_filename;

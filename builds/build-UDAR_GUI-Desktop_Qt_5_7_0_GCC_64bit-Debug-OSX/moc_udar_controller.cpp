@@ -20,8 +20,8 @@
 
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_UDAR_Controller_t {
-    QByteArrayData data[55];
-    char stringdata0[1157];
+    QByteArrayData data[57];
+    char stringdata0[1213];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -79,12 +79,14 @@ QT_MOC_LITERAL(45, 911, 25), // "on_readPcapButton_clicked"
 QT_MOC_LITERAL(46, 937, 27), // "on_plotOutputButton_clicked"
 QT_MOC_LITERAL(47, 965, 26), // "on_getThreadStatus_clicked"
 QT_MOC_LITERAL(48, 992, 21), // "on_killThread_clicked"
-QT_MOC_LITERAL(49, 1014, 22), // "on_printExtBuf_clicked"
-QT_MOC_LITERAL(50, 1037, 35), // "on_promiscModeCheckBox_stateC..."
-QT_MOC_LITERAL(51, 1073, 5), // "state"
-QT_MOC_LITERAL(52, 1079, 27), // "on_dec2hex_in_returnPressed"
-QT_MOC_LITERAL(53, 1107, 27), // "on_hex2dec_in_returnPressed"
-QT_MOC_LITERAL(54, 1135, 21) // "fixTranscriptPosition"
+QT_MOC_LITERAL(49, 1014, 29), // "on_calibrateIndexZero_pressed"
+QT_MOC_LITERAL(50, 1044, 25), // "on_resetIndexZero_pressed"
+QT_MOC_LITERAL(51, 1070, 22), // "on_printExtBuf_clicked"
+QT_MOC_LITERAL(52, 1093, 35), // "on_promiscModeCheckBox_stateC..."
+QT_MOC_LITERAL(53, 1129, 5), // "state"
+QT_MOC_LITERAL(54, 1135, 27), // "on_dec2hex_in_returnPressed"
+QT_MOC_LITERAL(55, 1163, 27), // "on_hex2dec_in_returnPressed"
+QT_MOC_LITERAL(56, 1191, 21) // "fixTranscriptPosition"
 
     },
     "UDAR_Controller\0updateInterfaceFields\0"
@@ -115,7 +117,10 @@ QT_MOC_LITERAL(54, 1135, 21) // "fixTranscriptPosition"
     "on_readPcapButton_clicked\0"
     "on_plotOutputButton_clicked\0"
     "on_getThreadStatus_clicked\0"
-    "on_killThread_clicked\0on_printExtBuf_clicked\0"
+    "on_killThread_clicked\0"
+    "on_calibrateIndexZero_pressed\0"
+    "on_resetIndexZero_pressed\0"
+    "on_printExtBuf_clicked\0"
     "on_promiscModeCheckBox_stateChanged\0"
     "state\0on_dec2hex_in_returnPressed\0"
     "on_hex2dec_in_returnPressed\0"
@@ -129,7 +134,7 @@ static const uint qt_meta_data_UDAR_Controller[] = {
        7,       // revision
        0,       // classname
        0,    0, // classinfo
-      45,   14, // methods
+      47,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -137,51 +142,53 @@ static const uint qt_meta_data_UDAR_Controller[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    1,  239,    2, 0x08 /* Private */,
-       4,    0,  242,    2, 0x08 /* Private */,
-       5,    4,  243,    2, 0x08 /* Private */,
-      12,    2,  252,    2, 0x08 /* Private */,
-      14,    2,  257,    2, 0x08 /* Private */,
-      15,    1,  262,    2, 0x08 /* Private */,
-      16,    1,  265,    2, 0x08 /* Private */,
-      17,    1,  268,    2, 0x08 /* Private */,
-      18,    1,  271,    2, 0x08 /* Private */,
-      19,    1,  274,    2, 0x08 /* Private */,
-      20,    1,  277,    2, 0x08 /* Private */,
-      21,    1,  280,    2, 0x08 /* Private */,
-      22,    1,  283,    2, 0x08 /* Private */,
-      23,    1,  286,    2, 0x08 /* Private */,
-      24,    1,  289,    2, 0x08 /* Private */,
-      25,    1,  292,    2, 0x08 /* Private */,
-      26,    1,  295,    2, 0x08 /* Private */,
-      27,    1,  298,    2, 0x08 /* Private */,
-      28,    1,  301,    2, 0x08 /* Private */,
-      31,    1,  304,    2, 0x08 /* Private */,
-      15,    0,  307,    2, 0x08 /* Private */,
-      16,    0,  308,    2, 0x08 /* Private */,
-      17,    0,  309,    2, 0x08 /* Private */,
-      32,    1,  310,    2, 0x08 /* Private */,
-      33,    0,  313,    2, 0x08 /* Private */,
-      34,    0,  314,    2, 0x08 /* Private */,
-      35,    0,  315,    2, 0x08 /* Private */,
-      36,    1,  316,    2, 0x08 /* Private */,
-      37,    1,  319,    2, 0x08 /* Private */,
-      38,    1,  322,    2, 0x08 /* Private */,
-      39,    0,  325,    2, 0x08 /* Private */,
-      40,    0,  326,    2, 0x08 /* Private */,
-      41,    1,  327,    2, 0x08 /* Private */,
-      42,    1,  330,    2, 0x08 /* Private */,
-      43,    1,  333,    2, 0x08 /* Private */,
-      44,    1,  336,    2, 0x08 /* Private */,
-      45,    0,  339,    2, 0x08 /* Private */,
-      46,    0,  340,    2, 0x08 /* Private */,
-      47,    0,  341,    2, 0x08 /* Private */,
-      48,    0,  342,    2, 0x08 /* Private */,
-      49,    0,  343,    2, 0x08 /* Private */,
-      50,    1,  344,    2, 0x08 /* Private */,
-      52,    0,  347,    2, 0x08 /* Private */,
-      53,    0,  348,    2, 0x08 /* Private */,
-      54,    0,  349,    2, 0x08 /* Private */,
+       1,    1,  249,    2, 0x08 /* Private */,
+       4,    0,  252,    2, 0x08 /* Private */,
+       5,    4,  253,    2, 0x08 /* Private */,
+      12,    2,  262,    2, 0x08 /* Private */,
+      14,    2,  267,    2, 0x08 /* Private */,
+      15,    1,  272,    2, 0x08 /* Private */,
+      16,    1,  275,    2, 0x08 /* Private */,
+      17,    1,  278,    2, 0x08 /* Private */,
+      18,    1,  281,    2, 0x08 /* Private */,
+      19,    1,  284,    2, 0x08 /* Private */,
+      20,    1,  287,    2, 0x08 /* Private */,
+      21,    1,  290,    2, 0x08 /* Private */,
+      22,    1,  293,    2, 0x08 /* Private */,
+      23,    1,  296,    2, 0x08 /* Private */,
+      24,    1,  299,    2, 0x08 /* Private */,
+      25,    1,  302,    2, 0x08 /* Private */,
+      26,    1,  305,    2, 0x08 /* Private */,
+      27,    1,  308,    2, 0x08 /* Private */,
+      28,    1,  311,    2, 0x08 /* Private */,
+      31,    1,  314,    2, 0x08 /* Private */,
+      15,    0,  317,    2, 0x08 /* Private */,
+      16,    0,  318,    2, 0x08 /* Private */,
+      17,    0,  319,    2, 0x08 /* Private */,
+      32,    1,  320,    2, 0x08 /* Private */,
+      33,    0,  323,    2, 0x08 /* Private */,
+      34,    0,  324,    2, 0x08 /* Private */,
+      35,    0,  325,    2, 0x08 /* Private */,
+      36,    1,  326,    2, 0x08 /* Private */,
+      37,    1,  329,    2, 0x08 /* Private */,
+      38,    1,  332,    2, 0x08 /* Private */,
+      39,    0,  335,    2, 0x08 /* Private */,
+      40,    0,  336,    2, 0x08 /* Private */,
+      41,    1,  337,    2, 0x08 /* Private */,
+      42,    1,  340,    2, 0x08 /* Private */,
+      43,    1,  343,    2, 0x08 /* Private */,
+      44,    1,  346,    2, 0x08 /* Private */,
+      45,    0,  349,    2, 0x08 /* Private */,
+      46,    0,  350,    2, 0x08 /* Private */,
+      47,    0,  351,    2, 0x08 /* Private */,
+      48,    0,  352,    2, 0x08 /* Private */,
+      49,    0,  353,    2, 0x08 /* Private */,
+      50,    0,  354,    2, 0x08 /* Private */,
+      51,    0,  355,    2, 0x08 /* Private */,
+      52,    1,  356,    2, 0x08 /* Private */,
+      54,    0,  359,    2, 0x08 /* Private */,
+      55,    0,  360,    2, 0x08 /* Private */,
+      56,    0,  361,    2, 0x08 /* Private */,
 
  // slots: parameters
     QMetaType::Void, QMetaType::QString,    3,
@@ -225,7 +232,9 @@ static const uint qt_meta_data_UDAR_Controller[] = {
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
-    QMetaType::Void, QMetaType::Int,   51,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void, QMetaType::Int,   53,
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
@@ -279,11 +288,13 @@ void UDAR_Controller::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int 
         case 37: _t->on_plotOutputButton_clicked(); break;
         case 38: _t->on_getThreadStatus_clicked(); break;
         case 39: _t->on_killThread_clicked(); break;
-        case 40: _t->on_printExtBuf_clicked(); break;
-        case 41: _t->on_promiscModeCheckBox_stateChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 42: _t->on_dec2hex_in_returnPressed(); break;
-        case 43: _t->on_hex2dec_in_returnPressed(); break;
-        case 44: _t->fixTranscriptPosition(); break;
+        case 40: _t->on_calibrateIndexZero_pressed(); break;
+        case 41: _t->on_resetIndexZero_pressed(); break;
+        case 42: _t->on_printExtBuf_clicked(); break;
+        case 43: _t->on_promiscModeCheckBox_stateChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 44: _t->on_dec2hex_in_returnPressed(); break;
+        case 45: _t->on_hex2dec_in_returnPressed(); break;
+        case 46: _t->fixTranscriptPosition(); break;
         default: ;
         }
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
@@ -360,13 +371,13 @@ int UDAR_Controller::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 45)
+        if (_id < 47)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 45;
+        _id -= 47;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 45)
+        if (_id < 47)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 45;
+        _id -= 47;
     }
     return _id;
 }

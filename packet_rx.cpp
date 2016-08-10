@@ -58,9 +58,9 @@ void *listenThread(void *args){
       *(pstatbuffer+i) = *((unsigned char **)(arguments->statbuffer)+i);
   }
 
-  pbuffer = (unsigned char **)arguments->buffer;
-  for (i=0;i<numbufs;i++){
-      *(pbuffer+i) = *((unsigned char **)(arguments->buffer)+i);
+  pextbuffer = (unsigned char **)arguments->extbuffer;
+  for (i=0;i<numextbufs;i++){
+      *(pextbuffer+i) = *((unsigned char **)(arguments->extbuffer)+i);
   }
   threadcontrol = (int *)arguments->threadcontrol;
 
@@ -153,8 +153,11 @@ void *listenThread(void *args){
             threadcontrol[2] = wcount;
         }
         else if (header.caplen==lenstat){
+        //else if (header.caplen>=lenstat){
             pthread_mutex_lock(&statmutex[j]);
-            memcpy(pstatbuffer[j],packet+offset,header.caplen-offset-trim);
+           // memcpy(pstatbuffer[j],packet+offset,header.caplen-offset-trim);
+           // memcpy(pstatbuffer[j],packet+offset,lenstat-offset-trim);
+            memcpy(pstatbuffer[j],packet,lenstat);
             newstat[j] = 1;
             pthread_mutex_unlock(&statmutex[j]);
             j = (j+1)%numstatbufs;
@@ -232,8 +235,9 @@ void *writeThread(void *args){
   }
 
   threadcontrol = (int *)arguments->threadcontrol;
-  pthread_mutex_t *mutex;
+  pthread_mutex_t *mutex, *file_mutex;
   mutex = (pthread_mutex_t *)arguments->mutex;
+  file_mutex = (pthread_mutex_t *)arguments->extmutex;
   printf("Write Thread with file: %s\n",filename);
 
 
@@ -265,7 +269,9 @@ void *writeThread(void *args){
       }
       if (newdata[i]){
       //fwrite( *((unsigned char **)arguments->buffer + i),sizeof(char),len-offset-trim,fp);
+        pthread_mutex_lock(&file_mutex[0]);
         fwrite( pbuffer[i],sizeof(char),len-offset-trim,fp);
+        pthread_mutex_unlock(&file_mutex[0]);
         writecount++;
       }
       newdata[i] = 0;
