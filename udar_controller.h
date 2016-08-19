@@ -53,6 +53,8 @@
 
 #define TX_PKT_CMD_REPEAT 2
 
+#define TX_DATA_PKT_SIZE 552
+
 
 #define DEFAULT_DEST_MAC "5a:01:02:03:04:05"
 #define DEFAULT_SRC_MAC "98:05:02:03:04:05"
@@ -63,14 +65,14 @@
 
 #define PLOT_RANGE_LIMIT 13056 // = 3*(4096+256) // 32000
 #define SAMPLING_FREQ 245.76    // MHz
-#define DEFAULT_ADC_SAMPLES 254
-#define DEFAULT_CHIRP_PRF 10.0
-#define DEFAULT_FREQ_OFFSET 768
-#define DEFAULT_NUM_SAMPLES 4096
+#define DEFAULT_ADC_SAMPLES 510
+#define DEFAULT_CHIRP_PRF 2.0
+#define DEFAULT_FREQ_OFFSET 2816
+#define DEFAULT_NUM_SAMPLES 3584
 #define DEFAULT_CHIRP_TUNING_WORD 1
 #define DEFAULT_CHIRP_PHASE_ACCUM_LEN 16
 
-#define FFT_LEN 32768
+#define FFT_LEN 4096//32768
 #define SPEED_OF_LIGHT 300000000.0
 #define RELATIVE_PERMITTIVITY 1.0
 
@@ -128,6 +130,13 @@ struct radar_status_payload {
     uint32_t num_peaks_i;
 };
 
+struct waveform_tx_header {
+    uint32_t id;
+    uint32_t ind;
+    uint32_t len;
+    uint32_t placeholder;
+};
+
 namespace Ui {
 class UDAR_Controller;
 }
@@ -154,11 +163,15 @@ public:
 
     void sendCommand(const QString name);
     void sendCommand(const QString name, uint32_t cmd);
+    void sendWaveformData(const QString name, uint32_t cmd,uint32_t *data);
     void sendTestCommand(const QString name);
     uint32_t genCommandIdentifier();
+    uint32_t genWaveformIdentifier();
     QStringList getNetworkInterfaces();
     void read_pcap(int argc, char *argv[], char *outdir);
     void decode_plot(int argc, char *argv[], char *outdir);
+    void plotWaveformPreview(int argc, char *argv[]);
+    int getWaveformData(int argc, char *argv[],uint32_t **wave_data);
 
 
     int fftData(double **fft, QVector<double> &data, int datasize);
@@ -186,6 +199,7 @@ private:
     struct fmc150_parameters fmc150_params;
     struct radar_status_payload radar_status;
     struct radar_status_payload radar_calib_zero;
+    struct waveform_tx_header waveform_header;
     time_t start_time;
     struct timeval start_tp;
     QTimer *rx_status_timer;
@@ -264,6 +278,8 @@ private slots:
     void on_resetIndexZero_pressed();
     void on_printExtBuf_clicked();
     void on_promiscModeCheckBox_stateChanged(int state);
+    void on_plotWaveformPreviewButton_clicked();
+    void on_sendWaveformButton_clicked();
 
     void on_dec2hex_in_returnPressed();
     void on_hex2dec_in_returnPressed();

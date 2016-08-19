@@ -287,12 +287,12 @@ void UDAR_Controller::setupCounterPlot(QCustomPlot *plot, QPen pen){
 
 void UDAR_Controller::setupPlotIQ(){
     setupDataPlot(ui->plotI,QPen(Qt::blue));
-    setupDataPlot(ui->plotQ,QPen(Qt::red));
-    setupDataPlot(ui->plotI2,QPen(Qt::blue));
+    setupDataPlot(ui->plotQ,QPen(Qt::blue));
+    setupDataPlot(ui->plotI2,QPen(Qt::red));
     setupDataPlot(ui->plotQ2,QPen(Qt::red));
     setupDataPlot(ui->plotFFTI,QPen(Qt::blue));
-    setupDataPlot(ui->plotFFTQ,QPen(Qt::red));
-    setupDataPlot(ui->plotFFTI2,QPen(Qt::blue));
+    setupDataPlot(ui->plotFFTQ,QPen(Qt::blue));
+    setupDataPlot(ui->plotFFTI2,QPen(Qt::red));
     setupDataPlot(ui->plotFFTQ2,QPen(Qt::red));
 
     setupCounterPlot(ui->plotC,QPen(Qt::green));
@@ -571,7 +571,11 @@ void UDAR_Controller::storeChirpParams(){
 
 //    chirp_params.control_word = (uint32_t)(select_data & 0x000000FF);
   //  u_char dataformat = GetRxDataFormat() ;
-     chirp_params.control_word = (uint32_t)(GetRxDataFormat() & 0x000000FF);
+     uint32_t dds_source_ctrl = 0;
+     if (ui->DDSsourceWave_radioButton->isChecked()) dds_source_ctrl = 3;
+
+     chirp_params.control_word = (uint32_t)(GetRxDataFormat() & 0x000000FF) + ((dds_source_ctrl<<8) & 0x0000FF00);
+
     //chirp_params.control_word = (uint32_t)ui->dacLoopback_checkBox->isChecked();
 }
 void UDAR_Controller::storeFMC150Params(){
@@ -679,6 +683,168 @@ void UDAR_Controller::getIpArray(u_char ip[4],QString text){
     sscanf(str,"%d.%d.%d.%d",&ip_int[0],&ip_int[1],&ip_int[2],&ip_int[3]);
     for(int i=0;i<4;i++) ip[i] = (u_char)ip_int[i];
 }
+
+void UDAR_Controller::sendWaveformData(const QString name, uint32_t cmd,uint32_t *data)
+{
+    NetInterface *currInterface = interfaceMap[name];
+    QByteArray ba = name.toLatin1();
+    const char* if_name = ba.data();
+    int i,data_ind,pkt_count,data_size,full_data_size,data_offset,cmd_header_size;
+    //const char* if_name= "en0";//argv[1];
+    const char* target_ip_string = "192.168.1.10"; //argv[2];
+    u_char target_mac[6];
+    u_char target_ip_addr_in[4];
+    getMacArray(target_mac,ui->destMacAddr->text());
+    getIpArray(target_ip_addr_in,ui->destIpAddr->text());
+
+    uint32_t partial_packet_size,full_packet_size,partial_data_len8,num_full_pkts,waveform_data_len8;
+    uint16_t packet_size;
+    u_char *packet_data;
+    uint32_t packet_cmd_id;
+
+    // chirp command: ascii WWCC
+    if(cmd == DATA_WRITE_COMMAND){
+        full_packet_size = TX_DATA_PKT_SIZE-sizeof(struct ether_header);
+        cmd_header_size = 10; //2 byte counter, 4 byte cmd word, 4 byte cmd id
+        full_data_size = full_packet_size - sizeof(struct waveform_tx_header) - cmd_header_size;
+        data_offset = cmd_header_size+sizeof(struct waveform_tx_header);
+        //packet_data = new u_char[packet_size];
+
+        waveform_data_len8  = (waveform_header.len<<2);
+        num_full_pkts = floor(waveform_data_len8/full_data_size);
+        partial_data_len8 = waveform_data_len8 - num_full_pkts*full_data_size;
+        partial_packet_size = partial_data_len8 + cmd_header_size + sizeof(struct waveform_tx_header);
+        int num_pkts = num_full_pkts;
+        int need_partial_pkt = 0;
+        if (partial_data_len8 > 0) {
+            need_partial_pkt = 1;
+            num_pkts += 1;
+        }
+
+        // Construct Ethernet header (except for source MAC address).
+        // (Destination set to broadcast address, FF:FF:FF:FF:FF:FF.)
+        struct ether_header header;
+       // header.ether_type=htons(packet_size);
+        for (i=0;i<6;i++) header.ether_dhost[i] = target_mac[i];
+
+        // Convert target IP address from string, copy into ARP request.
+        struct in_addr target_ip_addr={0};
+        memcpy(&target_ip_addr,target_ip_addr_in,4);
+
+        // Write the interface name to an ifreq structure,
+        // for obtaining the source MAC and IP addresses.
+        struct ifreq ifr;
+        size_t if_name_len=strlen(if_name);
+        if (if_name_len<sizeof(ifr.ifr_name)) {
+            memcpy(ifr.ifr_name,if_name,if_name_len);
+            ifr.ifr_name[if_name_len]=0;
+        } else {
+            fprintf(stderr,"interface name is too long");
+            exit(1);
+        }
+
+        // Open an IPv4-family socket for use when calling ioctl.
+        int fd=socket(AF_INET,SOCK_DGRAM,0);
+        if (fd==-1) {
+            fprintf(stderr,"[SendCommand] Unable to open socket");
+            perror(0);
+            exit(1);
+        }
+        u_char *source_mac = currInterface->GetMac();
+        for (i=0;i<6;i++) header.ether_shost[i] = source_mac[i];
+        delete[] source_mac;
+        ::close(fd);
+
+        // Open a PCAP packet capture descriptor for the specified interface.
+        char pcap_errbuf[PCAP_ERRBUF_SIZE];
+        pcap_errbuf[0]='\0';
+        pcap_t* pcap=pcap_open_live(if_name,96,0,0,pcap_errbuf);
+        if (pcap_errbuf[0]!='\0') {
+            fprintf(stderr,"[SendCommand] pcap_errbuf: %s\n",pcap_errbuf);
+        }
+        if (!pcap) {
+            exit(1);
+        }
+
+        data_ind = 0;
+        for(pkt_count = 0;pkt_count < num_pkts; pkt_count++){
+
+            if(need_partial_pkt & (pkt_count ==  num_pkts-1)){
+                packet_size = partial_packet_size;
+            }
+            else {
+                packet_size = full_packet_size;
+            }
+            data_size = packet_size - sizeof(struct waveform_tx_header) - cmd_header_size;
+
+            packet_data = new u_char[packet_size];
+
+            header.ether_type=htons(packet_size);
+
+
+            unsigned char frame[sizeof(struct ether_header)+ packet_size];
+
+            packet_cmd_id = genCommandIdentifier();
+            if(ui->byteReorderCheckBox->isChecked()){
+                *(uint16_t *)packet_data =htons(global_pkt_counter++);
+               // for (i=2;i<6;i++) packet_data[i] = 0x57; // Ascii W
+                *(uint32_t*)(packet_data+2) = htonl(cmd);
+                *(uint32_t*)(packet_data+6) = htonl(packet_cmd_id);
+                int j = 0;
+                for (i=0;i<sizeof(struct waveform_tx_header);i+=4)
+                    *(uint32_t*)(packet_data+i+10) = htonl(*((uint32_t*)(&waveform_header)+(j++)));
+                for(i=0;i<data_size;i+=4){
+                    *(uint32_t*)(packet_data+i+data_offset) = htonl(data[(i>>2)+(data_ind>>2)]);
+                }
+            }
+            else {
+                *(uint16_t *)packet_data = global_pkt_counter++;
+               // for (i=2;i<6;i++) packet_data[i] = cmd;
+                *(uint32_t*)(packet_data+2) = cmd;
+                *(uint32_t*)(packet_data+6) = packet_cmd_id;
+                memcpy(packet_data+10,&waveform_header,sizeof(struct waveform_tx_header));
+                memcpy(packet_data+data_offset,(u_char *)data+data_ind,data_size);
+            }
+            waveform_header.ind++;
+            data_ind+=data_size;
+
+            // Combine the Ethernet header and ARP request into a contiguous block.
+
+            memcpy(frame,&header,sizeof(struct ether_header));
+            memcpy(frame+sizeof(struct ether_header),packet_data,packet_size);
+
+            if (pcap_inject(pcap,frame,sizeof(frame))==-1) {
+                pcap_perror(pcap,0);
+                pcap_close(pcap);
+                exit(1);
+            }
+
+            if(pkt_count ==0){
+                char tempstr[STR_SIZE];
+                sprintf(tempstr,"First Waveform Packet Sent on Interface: %s",if_name);
+                setTranscript(tempstr);
+                setTranscript(frame,sizeof(struct ether_header)+ packet_size);
+            }
+            else if(pkt_count == (num_pkts-1)){
+                    char tempstr[STR_SIZE];
+                    sprintf(tempstr,"Final Waveform Packet Sent on Interface: %s",if_name);
+                    setTranscript(tempstr);
+                    setTranscript(frame,sizeof(struct ether_header)+ packet_size);
+            }
+
+            //Delete packet data
+            delete[] packet_data;
+        }
+
+        pcap_close(pcap);
+
+    }
+    else {
+        setTranscript("Incorrect Command Word Issued");
+    }
+
+}
+
 
 void UDAR_Controller::sendCommand(const QString name, uint32_t cmd)
 {
@@ -1270,6 +1436,127 @@ QStringList UDAR_Controller::getNetworkInterfaces(){
     return ifNames;
 }
 
+int UDAR_Controller::getWaveformData(int argc, char *argv[],uint32_t **wave_data){
+    FILE *fp;
+    int i,err, file_len, file_len_32;    // 0: dump udp packet, 1: dump data at offset
+    uint32_t *data = NULL;
+    if ( argc < 1 )
+    {
+      setTranscript("[getWaveformData] Error: not enough input arguments");
+      return -1;
+    }
+    fp = fopen(argv[0], "rb" );
+    if (!fp){
+        setTranscript("[getWaveformData] Error: Unable to open file..");
+        return -1;
+    }
+    fseek(fp, 0, SEEK_END);
+    file_len = ftell(fp);
+    file_len_32 = file_len>>2;
+    rewind(fp);
+
+    if (file_len==0){
+        setTranscript("[getWaveformData] File is empty... No data found");
+        fclose(fp);
+        return -1;
+    }
+
+    data = new uint32_t[file_len_32];
+    if(fread(data,sizeof(uint32_t),file_len_32,fp)!=file_len_32){
+        setTranscript("[getWaveformData] File read error");
+        fclose(fp);
+        return -1;
+    }
+    fclose(fp);
+
+    *wave_data = data;
+
+    return file_len_32;
+
+}
+
+void UDAR_Controller::plotWaveformPreview(int argc, char *argv[]){
+    FILE *fp;
+    int i,err, file_len, file_len_32;    // 0: dump udp packet, 1: dump data at offset
+    uint32_t *data = NULL;
+    if ( argc < 1 )
+    {
+      setTranscript("[loadWaveformData] Error: not enough input arguments");
+      return;
+    }
+    fp = fopen(argv[0], "rb" );
+    if (!fp){
+        setTranscript("[loadWaveformData] Error: Unable to open file..");
+        return;
+    }
+    fseek(fp, 0, SEEK_END);
+    file_len = ftell(fp);
+    file_len_32 = file_len>>2;
+    rewind(fp);
+
+    if (file_len==0){
+        setTranscript("[loadWaveformData] File is empty... No data found");
+        fclose(fp);
+        return;
+    }
+
+    data = new uint32_t[file_len_32];
+    if(fread(data,sizeof(uint32_t),file_len_32,fp)!=file_len_32){
+        setTranscript("[loadWaveformData] File read error");
+        fclose(fp);
+        return;
+    }
+    fclose(fp);
+
+    plotDataI.clear();
+    plotDataQ.clear();
+    plotTimeVec.clear();
+    for (i=0;i<file_len_32;i++){
+//        WaveformDataI.append((double)(*((int16_t *)data+2*i)));
+//        WaveformDataQ.append((double)(*((int16_t *)data+2*i+1)));
+        plotDataI.append((double)(*((int16_t *)data+2*i)));
+        plotDataQ.append((double)(*((int16_t *)data+2*i+1)));
+        plotTimeVec.append((double)i);
+    }
+    updateDataPlotIQ();
+
+    double *fftI, *fftQ;
+    int lenI = fftDataI(&fftI,data,file_len_32);
+    int lenQ = fftDataQ(&fftQ,data,file_len_32);
+
+    int lenIQ;
+    if(lenI != lenQ){
+        setTranscript("IQ Vector Length Mismatch!");
+        if (lenI >lenQ) lenIQ = lenQ;
+        else lenIQ = lenI;
+    }
+    else {
+        lenIQ = lenI;
+    }
+
+    double freqstep = (double)2.0*SAMPLING_FREQ/lenIQ;
+
+    plotfftI.clear();
+    plotfftQ.clear();
+    plotfftVec.clear();
+    double absI,absQ;
+    for(i=1;i<(lenIQ/2);i+=2){
+        absI = sqrt(fftI[i-1]*fftI[i-1]+fftI[i]*fftI[i]);
+        absQ = sqrt(fftQ[i-1]*fftQ[i-1]+fftQ[i]*fftQ[i]);
+         plotfftQ.append(20.0*log10(absI)); //swapped due to [i,q] ordering change to [q,i]
+         plotfftI.append(20.0*log10(absQ));
+         plotfftVec.append((double)((i-1)/2) * freqstep);
+    }
+    updateFFTPlotIQ();
+
+    delete[] fftI;
+    delete[] fftQ;
+
+
+    delete[] data;
+    return;
+}
+
 void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
     FILE *fp,*fp_c,*fp_iq;
     int i,err;    // 0: dump udp packet, 1: dump data at offset
@@ -1321,7 +1608,9 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
     if (file_len==0){
         //fprintf(stderr,"Unable to open file\n");
         //exit(1);
+        if(!ui->realtimePlot_checkBox->isChecked()){
         setTranscript("File is empty... No data found");
+        }
         if (need_mutex){
             pthread_mutex_unlock(&filemutex);
         }
@@ -1401,14 +1690,25 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
 
       int cjump_ind = 0;
       int cjump_off = 0;
-      if (numjumps >2) {
+
+      if (numjumps >3) {
+           cjump_ind = numjumps-3;
+           cjump_off = cjumps[numjumps-3];
+           plotrng = cjumps[numjumps-2]-cjump_off;
+       }
+     else if (numjumps >2) {
           cjump_ind = 1;
           cjump_off = cjumps[1];
+          plotrng = cjumps[2]-cjump_off;
+      }
+      else {
+          if(datasize>plotrng) cjump_off = datasize-plotrng;
       }
 
+      if(plotrng>(datasize-cjump_off)) plotrng = datasize-cjump_off;
+
       int time_ind = 0;
-      //for(i=0;i<plotrng;i++){
-      for(i=cjump_off;i<plotrng;i++){
+     for(i=cjump_off;i<(plotrng+cjump_off);i++){
           if (i == cjumps[cjump_ind]){
               cjump_ind++;
           }
@@ -1437,24 +1737,21 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
 
       updateDataPlotIQ();
 
-     int start_offset = 0;
-     int fft_plotlen = datasize;
-     if(numjumps>6){
-        start_offset = cjumps[5]+1;
-        fft_plotlen = cjumps[6]-1 - start_offset;
-     }
-     else if(numjumps>4){
-        start_offset = cjumps[3]+1;
-        fft_plotlen = cjumps[4]-1 - start_offset;
-     }
-     else if(numjumps>2){
-        start_offset = cjumps[1]+1;
-        fft_plotlen = cjumps[2]-1 - start_offset;
-     }
-     else if(numjumps>1){
+      int start_offset;
+      int fft_plotlen;
+
+      if (numjumps >2){
+        start_offset = cjumps[numjumps-3]+1;
+        fft_plotlen = cjumps[numjumps-2]-1-start_offset;
+      }
+      else if (numjumps >1){
         start_offset = cjumps[0]+1;
         fft_plotlen = cjumps[1]-1 - start_offset;
-     }
+      }
+      else {
+        start_offset = 0;
+        fft_plotlen = datasize;
+      }
 
      double *fftI, *fftQ,*fftI2, *fftQ2;;
      int lenI = fftDataI(&fftI,dataL+start_offset,fft_plotlen);
@@ -1856,10 +2153,10 @@ void UDAR_Controller::on_readPcapButton_clicked(){
 
 void UDAR_Controller::on_tabWidget_a_currentChanged(int value)
 {
-    if (value == 0){
+    if ((value == 0) | (value == 1)){
         ui->injectChirp_radioButton->setChecked(1);
     }
-    else if (value == 1){
+    else if (value == 2){
         ui->injectFmc150_radioButton->setChecked(1);
     }
 }
@@ -1948,7 +2245,33 @@ void UDAR_Controller::on_chirpParamsResetButton_clicked(){
     ui->chirpPRF_dSpinBox->setValue(chirp_prf);
     ui->adcSamples_spinBox->setValue(adc_sample_count);
 }
+void UDAR_Controller::on_sendWaveformButton_clicked(){
+    QString if_name_qstr = ui->networkInterfaces->currentText();
+    QString fname_qstr = ui->waveformFilename->text();
+    QString out_dir_qstr = ui->waveformDirectory->text();
+    QString in_fname = out_dir_qstr + fname_qstr;
+    uint32_t *data;
+    int numargs = 1;
+    char *strptr[numargs];
+    QByteArray in_fname_ba = in_fname.toLatin1();
+    strptr[0] = in_fname_ba.data();
 
+    int len = getWaveformData(numargs,strptr,&data);
+
+    if (len == -1){
+        setTranscript("Failed to get Waveform Data from File");
+        return;
+    }
+
+    waveform_header.id = genWaveformIdentifier();
+    waveform_header.ind = 0;
+    waveform_header.len = uint32_t(len);
+    waveform_header.placeholder = 0;
+    sendWaveformData(if_name_qstr, DATA_WRITE_COMMAND,data);
+
+    setTranscript("Waveform Sent");
+    delete[] data;
+}
 void UDAR_Controller::on_writeButton_clicked(){
     QString if_name_qstr = ui->networkInterfaces->currentText();
     //QByteArray ba = if_name_qstr.toLatin1();
@@ -2041,8 +2364,10 @@ void UDAR_Controller::on_listenButton_clicked(){
         setTranscript(tempstr);
      }
     else if (thread_err == 1){
-        sprintf(tempstr,"Already listening on device %s",if_name);
-        setTranscript(tempstr);
+        if (!ui->circularBuffer_checkBox->isChecked()){
+            sprintf(tempstr,"Already listening on device %s",if_name);
+            setTranscript(tempstr);
+        }
     }
     else
     {
@@ -2060,7 +2385,23 @@ uint32_t UDAR_Controller::genCommandIdentifier(){
     uint32_t ms_start = start_tp.tv_sec * 1000 + start_tp.tv_usec / 1000;
     uint32_t ms = tp.tv_sec * 1000 + tp.tv_usec / 1000;
     ms = ms - ms_start;
-    return ms;
+    uint32_t rand_id = (uint32_t) (rand() % 0x0000FFFF);
+    uint32_t cmd_id = ((rand_id<<16) & 0xFFFF0000) +  (ms_start & 0x0000FFFF);
+    return cmd_id;
+}
+
+uint32_t UDAR_Controller::genWaveformIdentifier(){
+//    time_t rawtime;
+//    time(&rawtime );
+//    uint32_t seconds = (uint32_t)difftime(rawtime,start_time);
+//    return seconds;
+    struct timeval tp;
+    gettimeofday(&tp, NULL);
+    uint32_t ms_start = start_tp.tv_sec * 1000 + start_tp.tv_usec / 1000;
+    uint32_t ms = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+    ms = ms - ms_start;
+    uint32_t wfrm_id = 0xccdd0000 + (ms & 0x0000FFFF);
+    return wfrm_id;
 }
 void UDAR_Controller::on_calibrateIndexZero_pressed(){
     unsigned char *statbuf;
@@ -2079,7 +2420,14 @@ void UDAR_Controller::on_resetIndexZero_pressed(){
 }
 void UDAR_Controller::updateRXStatus(){
      QString qstr = interfaceMap[ui->networkInterfaces->currentText()]->GetThreadStatus();
-    // if (interfaceMap[ui->networkInterfaces->currentText()]->IsListening()){
+    if ((interfaceMap[ui->networkInterfaces->currentText()]->IsListening())&(ui->realtimePlot_checkBox->isChecked())){
+        on_plotOutputButton_clicked();
+    }
+
+    if ((interfaceMap[ui->networkInterfaces->currentText()]->IsListening())&(ui->circularBuffer_checkBox->isChecked())){
+        on_listenButton_clicked();
+    }
+
     QString qtempstr;
     unsigned char *statbuf;
     int statlen = interfaceMap[ui->networkInterfaces->currentText()]->GetStatBuffer(&statbuf,RX_HEADER_SIZE);
@@ -2102,31 +2450,60 @@ void UDAR_Controller::updateRXStatus(){
          double index_i = (double)radar_status.peak_index_i-(double)radar_calib_zero.peak_index_i;
          double index_q = (double)radar_status.peak_index_q-(double)radar_calib_zero.peak_index_q;
 
-         double fshift_i = index_i*fClock/FFT_LEN;
-         double fshift_q = index_q*fClock/FFT_LEN;
-         double tshift_i = fshift_i/slope;
-         double tshift_q = fshift_q/slope;
-         double range_i = (double)(SPEED_OF_LIGHT/sqrt(rel_perm))*tshift_i/2.0;
-         double range_q = (double)(SPEED_OF_LIGHT/sqrt(rel_perm))*tshift_q/2.0;
+         bool using_matched_filter = 1;
+         if (using_matched_filter){
+             double tshift_i = index_i/fClock;
+             double tshift_q = index_q/fClock;
+             double range_i = (double)(SPEED_OF_LIGHT/sqrt(rel_perm))*tshift_i/2.0;
+             double range_q = (double)(SPEED_OF_LIGHT/sqrt(rel_perm))*tshift_q/2.0;
 
-         qtempstr.sprintf("\n----------------- I Channel [%u Detections] -----------------",radar_status.num_peaks_i);
-         qstr.append(qtempstr);
-         qtempstr.sprintf("\nRange:\t%lf(m)\nShift:\t%lf(us),%lf(MHz)",range_i,1000000.0*tshift_i,fshift_i/1000000.0);
-         qstr.append(qtempstr);
-         qtempstr.sprintf("\nPeak Index:\t%u (zeroed to %u) \nPeak Mag:\t%u",radar_status.peak_index_i,radar_calib_zero.peak_index_i,(uint32_t)sqrt(radar_status.peak_value_i));
-         qstr.append(qtempstr);
-         qtempstr.sprintf("\n----------------- Q Channel [%u Detections] -----------------",radar_status.num_peaks_q);
-         qstr.append(qtempstr);
-         qtempstr.sprintf("\nRange:\t%lf(m)\nShift:\t%lf(us),%lf(MHz)",range_q,1000000.0*tshift_q,fshift_q/1000000.0);
-         qstr.append(qtempstr);
-         qtempstr.sprintf("\nPeak Index:\t%u (zeroed to %u) \nPeak Mag:\t%u",radar_status.peak_index_q,radar_calib_zero.peak_index_q,(uint32_t)sqrt(radar_status.peak_value_q));
-         qstr.append(qtempstr);
-         qtempstr.sprintf("\n--------------------- Decoded Parameters --------------------");
-         qstr.append(qtempstr);
-         qtempstr.sprintf("\nctrl_word:%u, freq_off:%u, tuning word:%u, num_samples:%u",radar_status.chirp_control_word,radar_status.chirp_freq_off,radar_status.chirp_tuning_word,radar_status.chirp_num_samples+1);
-         qstr.append(qtempstr);
-         qtempstr.sprintf("\nadc_counter:%u. \tglbl_counter:%u",radar_status.adc_counter,radar_status.glbl_counter);
-         qstr.append(qtempstr);
+             qtempstr.sprintf("\n----------------- I Channel [%u Detections] -----------------",radar_status.num_peaks_i);
+             qstr.append(qtempstr);
+             qtempstr.sprintf("\nRange:\t%lf(m)\nShift:\t%lf(us)",range_i,1000000.0*tshift_i);
+             qstr.append(qtempstr);
+             qtempstr.sprintf("\nPeak Index:\t%u (zeroed to %u) \nPeak Mag:\t%u",radar_status.peak_index_i,radar_calib_zero.peak_index_i,(uint32_t)sqrt(radar_status.peak_value_i));
+             qstr.append(qtempstr);
+             qtempstr.sprintf("\n----------------- Q Channel [%u Detections] -----------------",radar_status.num_peaks_q);
+             qstr.append(qtempstr);
+             qtempstr.sprintf("\nRange:\t%lf(m)\nShift:\t%lf(us)",range_q,1000000.0*tshift_q);
+             qstr.append(qtempstr);
+             qtempstr.sprintf("\nPeak Index:\t%u (zeroed to %u) \nPeak Mag:\t%u",radar_status.peak_index_q,radar_calib_zero.peak_index_q,(uint32_t)sqrt(radar_status.peak_value_q));
+             qstr.append(qtempstr);
+             qtempstr.sprintf("\n--------------------- Decoded Parameters --------------------");
+             qstr.append(qtempstr);
+             qtempstr.sprintf("\nctrl_word:%u, freq_off:%u, tuning word:%u, num_samples:%u",radar_status.chirp_control_word,radar_status.chirp_freq_off,radar_status.chirp_tuning_word,radar_status.chirp_num_samples+1);
+             qstr.append(qtempstr);
+             qtempstr.sprintf("\nadc_counter:%u. \tglbl_counter:%u",radar_status.adc_counter,radar_status.glbl_counter);
+             qstr.append(qtempstr);
+
+         }
+         else {
+             double fshift_i = index_i*fClock/FFT_LEN;
+             double fshift_q = index_q*fClock/FFT_LEN;
+             double tshift_i = fshift_i/slope;
+             double tshift_q = fshift_q/slope;
+             double range_i = (double)(SPEED_OF_LIGHT/sqrt(rel_perm))*tshift_i/2.0;
+             double range_q = (double)(SPEED_OF_LIGHT/sqrt(rel_perm))*tshift_q/2.0;
+
+             qtempstr.sprintf("\n----------------- I Channel [%u Detections] -----------------",radar_status.num_peaks_i);
+             qstr.append(qtempstr);
+             qtempstr.sprintf("\nRange:\t%lf(m)\nShift:\t%lf(us),%lf(MHz)",range_i,1000000.0*tshift_i,fshift_i/1000000.0);
+             qstr.append(qtempstr);
+             qtempstr.sprintf("\nPeak Index:\t%u (zeroed to %u) \nPeak Mag:\t%u",radar_status.peak_index_i,radar_calib_zero.peak_index_i,(uint32_t)sqrt(radar_status.peak_value_i));
+             qstr.append(qtempstr);
+             qtempstr.sprintf("\n----------------- Q Channel [%u Detections] -----------------",radar_status.num_peaks_q);
+             qstr.append(qtempstr);
+             qtempstr.sprintf("\nRange:\t%lf(m)\nShift:\t%lf(us),%lf(MHz)",range_q,1000000.0*tshift_q,fshift_q/1000000.0);
+             qstr.append(qtempstr);
+             qtempstr.sprintf("\nPeak Index:\t%u (zeroed to %u) \nPeak Mag:\t%u",radar_status.peak_index_q,radar_calib_zero.peak_index_q,(uint32_t)sqrt(radar_status.peak_value_q));
+             qstr.append(qtempstr);
+             qtempstr.sprintf("\n--------------------- Decoded Parameters --------------------");
+             qstr.append(qtempstr);
+             qtempstr.sprintf("\nctrl_word:%u, freq_off:%u, tuning word:%u, num_samples:%u",radar_status.chirp_control_word,radar_status.chirp_freq_off,radar_status.chirp_tuning_word,radar_status.chirp_num_samples+1);
+             qstr.append(qtempstr);
+             qtempstr.sprintf("\nadc_counter:%u. \tglbl_counter:%u",radar_status.adc_counter,radar_status.glbl_counter);
+             qstr.append(qtempstr);
+         }
     }
     setStatusTranscript(qstr);
     delete[] statbuf;
@@ -2206,6 +2583,26 @@ void UDAR_Controller::on_killThread_clicked(){
 void UDAR_Controller::on_testButton_clicked(){
     sendTestCommand(ui->networkInterfaces->currentText());
 }
+void UDAR_Controller::on_plotWaveformPreviewButton_clicked(){
+    QString fname_qstr = ui->waveformFilename->text();
+    QString out_dir_qstr = ui->waveformDirectory->text();
+
+     QString in_fname = out_dir_qstr + fname_qstr;
+
+    setTranscript("Plotting Waveform Data from:");
+    setTranscript(in_fname);
+
+    int numargs = 1;
+    char *strptr[numargs];
+    QByteArray in_fname_ba = in_fname.toLatin1();
+
+    strptr[0] = in_fname_ba.data();
+    plotWaveformPreview(numargs,strptr);
+
+    if (ui->tabWidget_c->currentIndex() == 5){
+        ui->tabWidget_c->setCurrentIndex(0);
+    }
+}
 
 void UDAR_Controller::on_plotOutputButton_clicked(){
     QString fname_qstr = ui->recOutputFilename->text();
@@ -2236,11 +2633,13 @@ void UDAR_Controller::on_plotOutputButton_clicked(){
         out_fname_IQ = out_dir_qstr + root_fname_qstr + "IQ.bin";
     }
 
+    if(!ui->realtimePlot_checkBox->isChecked()){
     setTranscript("Decoding and Plotting Data from:");
     setTranscript(in_fname);
     setTranscript("Decoded Data Saved to:");
     setTranscript(out_fname_C);
     setTranscript(out_fname_IQ);
+    }
 
     int numargs = 3;
     char *strptr[numargs];
@@ -2254,8 +2653,8 @@ void UDAR_Controller::on_plotOutputButton_clicked(){
 
     decode_plot(numargs,strptr,out_dir);
 
-    if (ui->tabWidget_c->currentIndex() == 0){
-        ui->tabWidget_c->setCurrentIndex(1);
+    if ((ui->tabWidget_c->currentIndex() == 5)&(!ui->realtimePlot_checkBox->isChecked())){
+        ui->tabWidget_c->setCurrentIndex(0);
     }
 }
 
