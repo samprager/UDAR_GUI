@@ -63,6 +63,8 @@
 #define DEFAULT_IF_DEV1 "en4"
 #define DEFAULT_IF_DEV2 "en0"
 
+#define DEFAULT_PLOT_RANGE 4096
+
 #define PLOT_RANGE_LIMIT 13056 // = 3*(4096+256) // 32000
 #define SAMPLING_FREQ 245.76    // MHz
 #define DEFAULT_ADC_SAMPLES 510
@@ -150,16 +152,24 @@ public:
     ~UDAR_Controller();
 
     void setupDataPlot(QCustomPlot *plot, QPen pen);
+    void setupDataPlot(QCustomPlot *plot, QPen pen, QString xLabel);
     void setupCounterPlot(QCustomPlot *plot, QPen pen);
     void setupPlotIQ();
     void updateDataPlotIQ();
     void updateFFTPlotIQ();
+    void updateDataPlotIQ(QString nameL, QString nameU);
+    void updateDataPlotIQ(QString nameL);
+    void updateFFTPlotIQ(QString nameL, QString nameU);
+    void updateFFTPlotIQ(QString nameL);
+    void updateDSPPlotIQ(QString nameL, QString nameU);
     void connectSignals();
     void controllerInit();
     void calculateChirpParams();
     void storeChirpParams();
     void storeFMC150Params();
     u_char GetRxDataFormat();
+
+    QString GetRxDataFormatName(int index);
 
     void sendCommand(const QString name);
     void sendCommand(const QString name, uint32_t cmd);
@@ -171,6 +181,7 @@ public:
     void read_pcap(int argc, char *argv[], char *outdir);
     void decode_plot(int argc, char *argv[], char *outdir);
     void plotWaveformPreview(int argc, char *argv[]);
+    void PlotFromExtBuffer();
     int getWaveformData(int argc, char *argv[],uint32_t **wave_data);
 
 
@@ -178,6 +189,7 @@ public:
     int fftDataI(double **fftI, uint32_t *dataIQ,int datasize);
     int fftDataQ(double **fftQ, uint32_t *dataIQ,int datasize);
     int fftDataIQ(double **fftIQ, uint32_t *dataIQ,int datasize);
+    int ifftDataIQ(double **ifftIQ, double *dataIQ, int datasize);
 
     void getMacArray(u_char mac[6],QString text);
     void getIpArray(u_char ip[4],QString text);
@@ -219,6 +231,10 @@ private:
     QVector<double> plotfftI2;
     QVector<double> plotfftQ2;
     QVector<double> plotfftVec;
+    QVector<double> plotDSPI;
+    QVector<double> plotDSPQ;
+    QVector<double> plotDSPIQ;
+    QVector<double> plotRngVec;
     QVector<double> ctrjumpsX;
     QVector<double> ctrjumpsY;
     QVector<double> ctrjumpsY2;
@@ -233,6 +249,7 @@ private slots:
     void updateInterfaceFields(const QString if_name);
     void updateRXStatus();
     void updateDataPlot(QCustomPlot *plot,QVector<double> &dataX,QVector<double> &dataY, int graph_num);
+    void updateDataPlot(QCustomPlot *plot,QVector<double> &dataX,QVector<double> &dataY, int graph_num, QString name);
     void horzScrollBarChanged(QCustomPlot *plot, int value);
     void vertScrollBarChanged(QCustomPlot *plot, int value);
     void selectionChanged(QCustomPlot *plot);

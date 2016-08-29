@@ -113,10 +113,10 @@ int NetInterface::initRxThreads(char fname[], char outdir[],int init_wr_thread, 
   int *extstatus;
 
   numbufs = 1000;    // Number of row buffers
-  numextbufs = 10;    // Number of row external buffers
+  numextbufs = 256;    // Number of row external buffers
   numstatbufs= 1;
   numthreads = 3;
-  numextmutex = 1;
+  numextmutex = numextbufs;
   numfilemutex = 1;
 
     //uint32_t buffer[numbufs][len];
@@ -175,10 +175,9 @@ pthread_t *threads;
   sprintf(filename,"%s%s",outdir,fname);
   device = this->GetNameString();
 
-  extstatus = new int[2];
+  extstatus = new int[numextbufs];
 
-  extstatus[0] = 0;
-  extstatus[1] = 0;
+  for (i=0;i<numextbufs;i++) extstatus[i] = 0;
 
   dim = new int[7];
   dim[0] = numbufs;
@@ -305,6 +304,15 @@ pthread_t *threads;
   while (threadctrl[0][4]!=0)
     usleep(1);
 
+  threadctrl[2][4] = 1;
+  err = pthread_create(&threads[2],NULL,extBufferThread,(void *)&args[2]);
+  if(err != 0) {
+      printf("\nError initializing Ext Buffer thread: %i\n",err);
+      return -1;
+  }
+  while (threadctrl[2][4]!=0)
+    usleep(1);
+
   rx_thread_open = 1;
   sprintf(tempstr,"Read Thread Initialized...Listening to %s",device);
   // parent_ui->setTranscript(tempstr);
@@ -318,17 +326,6 @@ pthread_t *threads;
          return -1;
      }
   }
-
-  threadctrl[2][4] = 1;
-  err = pthread_create(&threads[2],NULL,extBufferThread,(void *)&args[2]);
-  if(err != 0) {
-      printf("\nError initializing Ext Buffer thread: %i\n",err);
-      return -1;
-  }
-  while (threadctrl[2][4]!=0)
-    usleep(1);
-
-
   return 0;
 
 }
@@ -407,7 +404,7 @@ QString NetInterface::GetThreadStatus(){
         thread_status = "["+ if_name + "," +if_status + "] " + QString::fromLatin1(tempstr);
     }
     else {
-       err = KillThreads();
+       err = KillWrThreads();
        thread_status = "["+ if_name + "," +if_status + "] " + "Write Limit Exceeded...Killing threads";
     }
     qstr = thread_status;
@@ -446,20 +443,67 @@ int NetInterface::PrintExtBuffer(int offset){
     }
     // parent_ui->setTranscript("Locking Mutex...");
     pthread_mutex_lock(&rec_extmutex[0]);
-    if (rec_extstatus[0]==1) {
-        pthread_mutex_unlock(&rec_extmutex[0]);
-        memcpy(pktsample,rec_pextbuf[0]+offset,RX_PKT_SIZE-offset);
-        // parent_ui->setTranscript(pktsample,RX_PKT_SIZE-offset);
-    }
-    else {
-        pthread_mutex_unlock(&rec_extmutex[0]);
-        // parent_ui->setTranscript("Ext Buffer Empty");
-    }
+    memcpy(pktsample,rec_pextbuf[0]+offset,RX_PKT_SIZE-offset);
+    pthread_mutex_unlock(&rec_extmutex[0]);
+
+//    if (rec_extstatus[0]==1) {
+//        pthread_mutex_unlock(&rec_extmutex[0]);
+//        memcpy(pktsample,rec_pextbuf[0]+offset,RX_PKT_SIZE-offset);
+//        // parent_ui->setTranscript(pktsample,RX_PKT_SIZE-offset);
+//    }
+//    else {
+//        pthread_mutex_unlock(&rec_extmutex[0]);
+//        // parent_ui->setTranscript("Ext Buffer Empty");
+//    }
     return 0;
 }
 int NetInterface::GetExtBufferSize(){
     return RX_PKT_SIZE;
 }
+int NetInterface::GetNumExtBuffers(){
+    return numextbufs;
+}
+int NetInterface::GetExtBuffer(u_char **extbuffer,int offset, int n){
+    u_char *pktsample = NULL;
+    int num, i, newest_data, extbuf_ind, extbuf_offset;
+    int ext_buf_status;
+
+    num= n;
+    if (num>numextbufs) num = numextbufs;
+    int packet_data_len = RX_PKT_SIZE-offset;
+    int sample_len = (RX_PKT_SIZE-offset)*num;
+
+    pktsample = new u_char[sample_len];
+    memset(pktsample,0,sample_len);
+    if (rx_thread_open == 0){
+        // parent_ui->setTranscript("Read thread Not Open");
+        *extbuffer = pktsample;
+        return -1;
+    }
+    pthread_mutex_lock(&rec_extmutex[0]);
+    newest_data = rec_extstatus[0];
+    pthread_mutex_unlock(&rec_extmutex[0]);
+    extbuf_offset = numextbufs-num+newest_data+1;
+    for (i=0;i<num;i++){
+//        pthread_mutex_lock(&rec_extmutex[0]);
+//        ext_buf_status = rec_extstatus[0];
+//        pthread_mutex_unlock(&rec_extmutex[0]);
+        extbuf_ind = (extbuf_offset+i)%numextbufs;
+        ext_buf_status = 1;
+        if (ext_buf_status==1) {
+            pthread_mutex_lock(&rec_extmutex[extbuf_ind]);
+            memcpy(pktsample+i*packet_data_len,rec_pextbuf[extbuf_ind]+offset,packet_data_len);
+            pthread_mutex_unlock(&rec_extmutex[extbuf_ind]);
+        }
+        else {
+           *extbuffer = pktsample;
+           return (i*packet_data_len);
+        }
+    }
+    *extbuffer = pktsample;
+    return sample_len;
+}
+
 int NetInterface::GetExtBuffer(u_char **extbuffer,int offset){
     u_char *pktsample = NULL;
     pktsample = new u_char[RX_PKT_SIZE-offset];
@@ -471,21 +515,25 @@ int NetInterface::GetExtBuffer(u_char **extbuffer,int offset){
     }
     // parent_ui->setTranscript("Locking Mutex...");
     pthread_mutex_lock(&rec_extmutex[0]);
-    if (rec_extstatus[0]==1) {
-        memcpy(pktsample,rec_pextbuf[0]+offset,RX_PKT_SIZE-offset);
-        pthread_mutex_unlock(&rec_extmutex[0]);
-        *extbuffer = pktsample;
-        // parent_ui->setTranscript(pktsample,RX_PKT_SIZE-offset);
-        return RX_PKT_SIZE-offset;
-    }
-    else {
-        pthread_mutex_unlock(&rec_extmutex[0]);
-        *extbuffer = pktsample;
-        // parent_ui->setTranscript("Ext Buffer Empty");
-        return 0;
-    }
-}
+    memcpy(pktsample,rec_pextbuf[0]+offset,RX_PKT_SIZE-offset);
+    pthread_mutex_unlock(&rec_extmutex[0]);
+    *extbuffer = pktsample;
+    return RX_PKT_SIZE-offset;
 
+//    if (rec_extstatus[0]==1) {
+//        memcpy(pktsample,rec_pextbuf[0]+offset,RX_PKT_SIZE-offset);
+//        pthread_mutex_unlock(&rec_extmutex[0]);
+//        *extbuffer = pktsample;
+//        // parent_ui->setTranscript(pktsample,RX_PKT_SIZE-offset);
+//        return RX_PKT_SIZE-offset;
+//    }
+//    else {
+//        pthread_mutex_unlock(&rec_extmutex[0]);
+//        *extbuffer = pktsample;
+//        // parent_ui->setTranscript("Ext Buffer Empty");
+//        return 0;
+//    }
+}
 
 int NetInterface::GetStatBufferSize(){
     return RX_STAT_PKT_SIZE;
@@ -611,6 +659,37 @@ int NetInterface::KillThreads(){
 
    return 0;
 }
+
+int NetInterface::KillWrThreads(){
+    char tempstr[128];
+    int i,err;
+
+    if (wr_thread_open == 0){
+        // parent_ui->setTranscript("Write Thread Not Open");
+    }
+    else {
+        rec_threadctrl[1][0] = 1;
+        usleep(10);
+        if (rec_threadctrl[1][4] == 1){
+            // parent_ui->setTranscript("Write Thread Killed");
+        }
+        else {
+            // parent_ui->setTranscript("Joining Write thread...");
+            err = pthread_join(rec_threads[1],NULL);
+            if(err != 0) {
+                sprintf(tempstr,"\nError joining Write thread: %i\n",err);
+                // parent_ui->setTranscript(tempstr);
+                return err;
+            }
+        }
+       wr_thread_open = 0;
+    }
+
+       sprintf(tempstr,"Succeuslly exited Write threads. read: %i/%i, written: %i",rec_threadctrl[0][2],rec_threadctrl[0][3],rec_threadctrl[1][2]);
+       // parent_ui->setTranscript(tempstr);
+    return 0;
+}
+
 
 
 u_char * NetInterface::GetMac(){

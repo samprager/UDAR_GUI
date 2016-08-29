@@ -67,7 +67,7 @@ void dump_UDP_packet(const unsigned char *packet, struct timeval ts,unsigned int
   ntohs(udp->uh_ulen));
 }
 
-int decodeDataPacket(uint32_t **dataU, uint32_t **dataL,unsigned char *packet_data, int size, int numpkts,int counter_offset, int s_index)
+int decodeDataPacket(uint32_t **dataU, uint32_t **dataL,unsigned char *packet_data, int size, int numpkts,int counter_offset, int s_index, int reverse_word)
 {
   int i,j,e_index,sq_size32,start_found;
   uint32_t temp0,temp1;
@@ -93,11 +93,19 @@ int decodeDataPacket(uint32_t **dataU, uint32_t **dataL,unsigned char *packet_da
   uint32_t cur_ind = 0;
 
 //reverse order of 32 bit words for each 512 bit sub-packet
-  for (i=0;i<sq_size32;i+=8){
-    for (j=0;j<8;j++){
-      memcpy(*dataU+i+j,((uint32_t*)packet_data)+2*i+s_index+counter_offset+14-2*j,sizeof(uint32_t));
-      memcpy(*dataL+i+j,((uint32_t*)packet_data)+2*i+s_index+1-counter_offset+14-2*j,sizeof(uint32_t));
-    }
+  if(reverse_word == 0){
+      for (i=0;i<sq_size32;i+=1){
+          memcpy(*dataU+i,((uint32_t*)packet_data)+2*i+s_index+counter_offset,sizeof(uint32_t));
+          memcpy(*dataL+i,((uint32_t*)packet_data)+2*i+s_index+1-counter_offset,sizeof(uint32_t));
+      }
+  }
+  else {
+      for (i=0;i<sq_size32;i+=(reverse_word/64)){
+        for (j=0;j<(reverse_word/64);j++){
+          memcpy(*dataU+i+j,((uint32_t*)packet_data)+2*i+s_index+counter_offset+14-2*j,sizeof(uint32_t));
+          memcpy(*dataL+i+j,((uint32_t*)packet_data)+2*i+s_index+1-counter_offset+14-2*j,sizeof(uint32_t));
+        }
+      }
   }
  return sq_size32;
 

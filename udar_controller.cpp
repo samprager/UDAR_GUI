@@ -26,30 +26,30 @@ UDAR_Controller::UDAR_Controller(QWidget *parent) :
 
 
     // initialize axis range (and scroll bar positions via signals we just connected):
-    ui->plotI->xAxis->setRange(0, 60, Qt::AlignCenter);
-    ui->plotI->yAxis->setRange(0, 60, Qt::AlignCenter);
-    ui->plotQ->xAxis->setRange(0, 60, Qt::AlignCenter);
-    ui->plotQ->yAxis->setRange(0, 60, Qt::AlignCenter);
+    ui->plotI->xAxis->setRange(0, DEFAULT_PLOT_RANGE, Qt::AlignLeft);
+    ui->plotI->yAxis->setRange(0, (1<<16), Qt::AlignCenter);
+    ui->plotQ->xAxis->setRange(0, DEFAULT_PLOT_RANGE, Qt::AlignLeft);
+    ui->plotQ->yAxis->setRange(0, (1<<16), Qt::AlignCenter);
 
-    ui->plotI2->xAxis->setRange(0, 60, Qt::AlignCenter);
-    ui->plotI2->yAxis->setRange(0, 60, Qt::AlignCenter);
-    ui->plotQ2->xAxis->setRange(0, 60, Qt::AlignCenter);
-    ui->plotQ2->yAxis->setRange(0, 60, Qt::AlignCenter);
+    ui->plotI2->xAxis->setRange(0, DEFAULT_PLOT_RANGE, Qt::AlignLeft);
+    ui->plotI2->yAxis->setRange(0, (1<<16), Qt::AlignCenter);
+    ui->plotQ2->xAxis->setRange(0, DEFAULT_PLOT_RANGE, Qt::AlignLeft);
+    ui->plotQ2->yAxis->setRange(0, (1<<16), Qt::AlignCenter);
 
-    ui->plotC->xAxis->setRange(0, 60, Qt::AlignCenter);
-    ui->plotC->yAxis->setRange(0, 60, Qt::AlignCenter);
-    ui->plotC2->xAxis->setRange(0, 60, Qt::AlignCenter);
-    ui->plotC2->yAxis->setRange(0, 60, Qt::AlignCenter);
+    ui->plotC->xAxis->setRange(0, 400, Qt::AlignLeft);
+    ui->plotC->yAxis->setRange(170,70, Qt::AlignLeft);
+    ui->plotC2->xAxis->setRange(0, 400, Qt::AlignLeft);
+    ui->plotC2->yAxis->setRange(170, 70, Qt::AlignLeft);
 
-    ui->plotFFTI->xAxis->setRange(0, 60, Qt::AlignCenter);
-    ui->plotFFTI->yAxis->setRange(70, 140, Qt::AlignCenter);
-    ui->plotFFTQ->xAxis->setRange(0, 60, Qt::AlignCenter);
-    ui->plotFFTQ->yAxis->setRange(70, 140, Qt::AlignCenter);
+    ui->plotFFTI->xAxis->setRange(0, 122, Qt::AlignLeft);
+    ui->plotFFTI->yAxis->setRange(60, 80, Qt::AlignLeft);
+    ui->plotFFTQ->xAxis->setRange(0, 122, Qt::AlignLeft);
+    ui->plotFFTQ->yAxis->setRange(60, 80, Qt::AlignLeft);
 
-    ui->plotFFTI2->xAxis->setRange(0, 60, Qt::AlignCenter);
-    ui->plotFFTI2->yAxis->setRange(70, 140, Qt::AlignCenter);
-    ui->plotFFTQ2->xAxis->setRange(0, 60, Qt::AlignCenter);
-    ui->plotFFTQ2->yAxis->setRange(70, 140, Qt::AlignCenter);
+    ui->plotFFTI2->xAxis->setRange(0, 122, Qt::AlignLeft);
+    ui->plotFFTI2->yAxis->setRange(60, 80, Qt::AlignLeft);
+    ui->plotFFTQ2->xAxis->setRange(0, 122, Qt::AlignLeft);
+    ui->plotFFTQ2->yAxis->setRange(60, 80, Qt::AlignLeft);
 
     connectSignals();
 
@@ -254,6 +254,38 @@ void UDAR_Controller::setupDataPlot(QCustomPlot *plot, QPen pen){
     plot->yAxis->setTickLabels(true);
     plot->yAxis->setTickLabelFont(QFont(QFont().family(), 9));
 
+    plot->legend->setVisible(true);
+    plot->legend->setFont(QFont(QFont().family(), 9));
+    plot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignBottom|Qt::AlignRight);
+
+    plot->axisRect()->setupFullAxesBox(true);
+   // plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+    plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
+                                    QCP::iSelectLegend | QCP::iSelectPlottables);
+}
+
+void UDAR_Controller::setupDataPlot(QCustomPlot *plot, QPen pen, QString xLabel){
+
+    // The following plot setup is mostly taken from the plot demos:
+
+    plot->addGraph();
+  //  plot->graph()->setPen(QPen(Qt::blue));
+    plot->graph()->setPen(pen);
+    plot->xAxis->setTicks(true);
+    plot->xAxis->setTickLabels(true);
+    plot->xAxis->setTickLabelFont(QFont(QFont().family(), 9));
+    plot->yAxis->setTicks(true);
+    plot->yAxis->setTickLabels(true);
+    plot->yAxis->setTickLabelFont(QFont(QFont().family(), 9));
+
+    plot->xAxis->setLabel(xLabel);
+    plot->xAxis->setLabelFont(QFont(QFont().family(), 9));
+    plot->xAxis->setLabelPadding(0);
+
+    plot->legend->setVisible(true);
+    plot->legend->setFont(QFont(QFont().family(), 9));
+    plot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignBottom|Qt::AlignRight);
+
     plot->axisRect()->setupFullAxesBox(true);
    // plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
     plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
@@ -286,22 +318,76 @@ void UDAR_Controller::setupCounterPlot(QCustomPlot *plot, QPen pen){
 
 
 void UDAR_Controller::setupPlotIQ(){
-    setupDataPlot(ui->plotI,QPen(Qt::blue));
-    setupDataPlot(ui->plotQ,QPen(Qt::blue));
-    setupDataPlot(ui->plotI2,QPen(Qt::red));
-    setupDataPlot(ui->plotQ2,QPen(Qt::red));
-    setupDataPlot(ui->plotFFTI,QPen(Qt::blue));
-    setupDataPlot(ui->plotFFTQ,QPen(Qt::blue));
-    setupDataPlot(ui->plotFFTI2,QPen(Qt::red));
-    setupDataPlot(ui->plotFFTQ2,QPen(Qt::red));
+    setupDataPlot(ui->plotI,QPen(Qt::blue),"Samples");
+    setupDataPlot(ui->plotQ,QPen(Qt::blue),"Samples");
+    setupDataPlot(ui->plotI2,QPen(Qt::red),"Samples");
+    setupDataPlot(ui->plotQ2,QPen(Qt::red),"Samples");
+    setupDataPlot(ui->plotFFTI,QPen(Qt::blue),"Freq(MHz)");
+    setupDataPlot(ui->plotFFTQ,QPen(Qt::blue),"Freq(MHz)");
+    setupDataPlot(ui->plotFFTI2,QPen(Qt::red),"Freq(MHz)");
+    setupDataPlot(ui->plotFFTQ2,QPen(Qt::red),"Freq(MHz)");
 
-    setupCounterPlot(ui->plotC,QPen(Qt::green));
-    setupCounterPlot(ui->plotC2,QPen(Qt::green));
+    setupDataPlot(ui->plotC,QPen(Qt::blue),"Range(m)");
+    setupDataPlot(ui->plotC,QPen(Qt::red),"Range(m)");
+    setupDataPlot(ui->plotC2,QPen(Qt::red),"Range(m)");
+
+
+//    setupCounterPlot(ui->plotC,QPen(Qt::green));
+//    setupCounterPlot(ui->plotC2,QPen(Qt::green));
 
 }
 void UDAR_Controller::updateDataPlot(QCustomPlot *plot,QVector<double> &dataX,QVector<double> &dataY,int graph_num){
+    QCPRange xrng = plot->xAxis->range();
+    QCPRange yrng = plot->yAxis->range();
+
     plot->graph(graph_num)->setData(dataX, dataY);
-    plot->graph(graph_num)->rescaleAxes();
+
+    if (ui->autoScale_checkBox->isChecked()){
+        QPoint p = this->mapFromGlobal(QCursor::pos());
+        p.setX(p.x()-15);
+        p.setY(p.y()-44);
+        QRect plotPos = plot->geometry();//plot->viewport();
+        if(plotPos.contains(p)){
+            plot->xAxis->setRange(xrng);
+            plot->yAxis->setRange(yrng);
+        }
+        else {
+            plot->graph(graph_num)->rescaleAxes();
+        }
+    }
+
+    plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
+                                    QCP::iSelectLegend | QCP::iSelectPlottables);
+    plot->replot();
+}
+
+void UDAR_Controller::updateDataPlot(QCustomPlot *plot,QVector<double> &dataX,QVector<double> &dataY,int graph_num, QString name){
+
+    QCPRange xrng = plot->xAxis->range();
+    QCPRange yrng = plot->yAxis->range();
+
+    plot->graph(graph_num)->setData(dataX, dataY);
+
+//    if (plot->xAxis->selectedParts().testFlag(QCPAxis::spAxis))
+//      plot->xAxis->setRange(xrng);
+//    else if (plot->yAxis->selectedParts().testFlag(QCPAxis::spAxis))
+//      plot->yAxis->setRange(yrng);
+
+    if (ui->autoScale_checkBox->isChecked()){
+        QPoint p = this->mapFromGlobal(QCursor::pos());
+        p.setX(p.x()-15);
+        p.setY(p.y()-44);
+        QRect plotPos = plot->geometry();//plot->viewport();
+        if(plotPos.contains(p)){
+            plot->xAxis->setRange(xrng);
+            plot->yAxis->setRange(yrng);
+        }
+        else {
+            plot->graph(graph_num)->rescaleAxes();
+        }
+    }
+
+    plot->graph(graph_num)->setName(name);
 
     plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
                                     QCP::iSelectLegend | QCP::iSelectPlottables);
@@ -313,10 +399,51 @@ void UDAR_Controller::updateDataPlotIQ(){
     updateDataPlot(ui->plotQ,plotTimeVec,plotDataQ,0);
     updateDataPlot(ui->plotI2,plotTimeVec,plotDataI2,0);
     updateDataPlot(ui->plotQ2,plotTimeVec,plotDataQ2,0);
-    updateDataPlot(ui->plotC,plotTimeVec,plotDataC,0);
-    updateDataPlot(ui->plotC,ctrjumpsX,ctrjumpsY,1);
-    updateDataPlot(ui->plotC2,plotTimeVec,plotDataC2,0);
-    updateDataPlot(ui->plotC2,ctrjumpsX,ctrjumpsY2,1);
+    //updateDataPlot(ui->plotC,plotTimeVec,plotDataC,0);
+    //updateDataPlot(ui->plotC,ctrjumpsX,ctrjumpsY,1);
+    //updateDataPlot(ui->plotC2,plotTimeVec,plotDataC2,0);
+    //updateDataPlot(ui->plotC2,ctrjumpsX,ctrjumpsY2,1);
+}
+
+void UDAR_Controller::updateDataPlotIQ(QString nameL, QString nameU){
+    updateDataPlot(ui->plotI,plotTimeVec,plotDataI,0,nameL);
+    updateDataPlot(ui->plotQ,plotTimeVec,plotDataQ,0,nameL);
+    updateDataPlot(ui->plotI2,plotTimeVec,plotDataI2,0,nameU);
+    updateDataPlot(ui->plotQ2,plotTimeVec,plotDataQ2,0,nameU);
+   // updateDataPlot(ui->plotC,plotTimeVec,plotDataC,0);
+    //updateDataPlot(ui->plotC,ctrjumpsX,ctrjumpsY,1);
+   // updateDataPlot(ui->plotC2,plotTimeVec,plotDataC2,0);
+    //updateDataPlot(ui->plotC2,ctrjumpsX,ctrjumpsY2,1);
+}
+
+void UDAR_Controller::updateDataPlotIQ(QString nameL){
+    updateDataPlot(ui->plotI,plotTimeVec,plotDataI,0,nameL);
+    updateDataPlot(ui->plotQ,plotTimeVec,plotDataQ,0,nameL);
+   // updateDataPlot(ui->plotI2,plotTimeVec,plotDataI2,0);
+   // updateDataPlot(ui->plotQ2,plotTimeVec,plotDataQ2,0);
+   // updateDataPlot(ui->plotC,plotTimeVec,plotDataC,0);
+    //updateDataPlot(ui->plotC,ctrjumpsX,ctrjumpsY,1);
+   // updateDataPlot(ui->plotC2,plotTimeVec,plotDataC2,0);
+    //updateDataPlot(ui->plotC2,ctrjumpsX,ctrjumpsY2,1);
+}
+
+void UDAR_Controller::updateDSPPlotIQ(QString nameL, QString nameU){
+    updateDataPlot(ui->plotC,plotRngVec,plotDSPI,0,nameL);
+    updateDataPlot(ui->plotC2,plotRngVec,plotDSPQ,0,nameU);
+}
+
+void UDAR_Controller::updateFFTPlotIQ(QString nameL, QString nameU){
+    updateDataPlot(ui->plotFFTI,plotfftVec,plotfftI,0,nameL);
+    updateDataPlot(ui->plotFFTQ,plotfftVec,plotfftQ,0,nameL);
+    updateDataPlot(ui->plotFFTI2,plotfftVec,plotfftI2,0,nameU);
+    updateDataPlot(ui->plotFFTQ2,plotfftVec,plotfftQ2,0,nameU);
+}
+
+void UDAR_Controller::updateFFTPlotIQ(QString nameL){
+    updateDataPlot(ui->plotFFTI,plotfftVec,plotfftI,0,nameL);
+    updateDataPlot(ui->plotFFTQ,plotfftVec,plotfftQ,0,nameL);
+  //  updateDataPlot(ui->plotFFTI2,plotfftVec,plotfftI2,0);
+  //  updateDataPlot(ui->plotFFTQ2,plotfftVec,plotfftQ2,0);
 }
 
 void UDAR_Controller::updateFFTPlotIQ(){
@@ -530,7 +657,21 @@ u_char UDAR_Controller::GetRxDataFormat(){
     return dataformat;
 }
 
-
+QString UDAR_Controller::GetRxDataFormatName(int index){
+    // Lower word
+    if (index == 0) {
+       if (ui->adc_data_l_radioButton->isChecked()) return ("ADC Output");
+       else if(ui->dac_data_l_radioButton->isChecked()) return("DAC Input");
+       else if(ui->adc_counter_l_radioButton->isChecked()) return("ADC Counter");
+       else return("Global Counter");
+    }
+    else {
+       if (ui->adc_data_u_radioButton->isChecked()) return ("ADC Output");
+       else if(ui->dac_data_u_radioButton->isChecked()) return("DAC Input");
+       else if(ui->adc_counter_u_radioButton->isChecked()) return("ADC Counter");
+       else return("Global Counter");
+    }
+}
 
 void UDAR_Controller::storeChirpParams(){
     double chirp_prf = ui->chirpPRF_dSpinBox->value();
@@ -1518,7 +1659,8 @@ void UDAR_Controller::plotWaveformPreview(int argc, char *argv[]){
         plotDataQ.append((double)(*((int16_t *)data+2*i+1)));
         plotTimeVec.append((double)i);
     }
-    updateDataPlotIQ();
+    QString nameL = "Waveform Preview";
+    updateDataPlotIQ(nameL);
 
     double *fftI, *fftQ;
     int lenI = fftDataI(&fftI,data,file_len_32);
@@ -1547,7 +1689,7 @@ void UDAR_Controller::plotWaveformPreview(int argc, char *argv[]){
          plotfftI.append(20.0*log10(absQ));
          plotfftVec.append((double)((i-1)/2) * freqstep);
     }
-    updateFFTPlotIQ();
+    updateFFTPlotIQ(nameL);
 
     delete[] fftI;
     delete[] fftQ;
@@ -1632,16 +1774,17 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
     }
     fclose(fp);
 
-
     int psize = RX_PKT_SIZE-RX_HEADER_SIZE;
     wcount = file_len/(RX_PKT_SIZE-RX_HEADER_SIZE);
 
     int set_counteroffset = 1;
     int set_sindex = 0;
+//    int reverse_word = 512;
+    int reverse_word = 0;
 
 //    datasize = decodePacket(&dataIQ,&counter,packet_data,psize,wcount,set_counteroffset,set_sindex);
 
-    datasize = decodeDataPacket(&dataU,&dataL,packet_data,psize,wcount,set_counteroffset,set_sindex);
+    datasize = decodeDataPacket(&dataU,&dataL,packet_data,psize,wcount,set_counteroffset,set_sindex,reverse_word);
 
     if (datasize == -1) {
       //fprintf(stderr, "Decode Packet failed. Returned: %i\n" ,datasize);
@@ -1683,10 +1826,8 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
       plotDataI2.clear();
       plotDataQ2.clear();
       plotTimeVec.clear();
-      plotDataC.clear();
-      plotDataC2.clear();
-
-      u_char data_format = GetRxDataFormat();
+//      plotDataC.clear();
+//      plotDataC2.clear();
 
       int cjump_ind = 0;
       int cjump_off = 0;
@@ -1713,10 +1854,10 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
               cjump_ind++;
           }
           else {
-              plotDataC.append((double)dataL[i]);
+             // plotDataC.append((double)dataL[i]);
               plotDataI.append((double)(*((int16_t *)dataL+2*i+1)));
               plotDataQ.append((double)(*((int16_t *)dataL+2*i)));
-              plotDataC2.append((double)dataU[i]);
+             // plotDataC2.append((double)dataU[i]);
               plotDataI2.append((double)(*((int16_t *)dataU+2*i+1)));
               plotDataQ2.append((double)(*((int16_t *)dataU+2*i)));
               plotTimeVec.append((double)time_ind);
@@ -1725,17 +1866,20 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
           }
       }
 
-      ctrjumpsX.clear();
-      ctrjumpsY.clear();
-      ctrjumpsY2.clear();
-      for(i=0;i<numjumps;i++){
-          if (cjumps[i]>plotrng) break;
-          ctrjumpsX.append((double)cjumps[i]);
-          ctrjumpsY.append((double)dataL[cjumps[i]]);
-          ctrjumpsY2.append((double)dataU[cjumps[i]]);
-      }
+//      ctrjumpsX.clear();
+//      ctrjumpsY.clear();
+//      ctrjumpsY2.clear();
+//      for(i=0;i<numjumps;i++){
+//          if (cjumps[i]>plotrng) break;
+//          ctrjumpsX.append((double)cjumps[i]);
+//          ctrjumpsY.append((double)dataL[cjumps[i]]);
+//          ctrjumpsY2.append((double)dataU[cjumps[i]]);
+//      }
+//      updateDataPlotIQ();
+      QString nameL = GetRxDataFormatName(0);
+      QString nameU = GetRxDataFormatName(1);
 
-      updateDataPlotIQ();
+      updateDataPlotIQ(nameL,nameU);
 
       int start_offset;
       int fft_plotlen;
@@ -1788,38 +1932,87 @@ void UDAR_Controller::decode_plot(int argc, char *argv[], char *outdir){
 
      double freqstep = (double)2.0*SAMPLING_FREQ/lenIQ;
 
+     double *corrI = new double[(lenIQ/2)];
+     double *corrQ = new double[(lenIQ/2)];
+
      plotfftI.clear();
      plotfftQ.clear();
      plotfftI2.clear();
      plotfftQ2.clear();
      plotfftVec.clear();
+
+     int use_log = ui->logScale_checkBox->isChecked();
      double absI,absQ,absI2,absQ2;
+
      for(i=1;i<(lenIQ/2);i+=2){
          absI = sqrt(fftI[i-1]*fftI[i-1]+fftI[i]*fftI[i]);
          absQ = sqrt(fftQ[i-1]*fftQ[i-1]+fftQ[i]*fftQ[i]);
          absI2 = sqrt(fftI2[i-1]*fftI2[i-1]+fftI2[i]*fftI2[i]);
          absQ2 = sqrt(fftQ2[i-1]*fftQ2[i-1]+fftQ2[i]*fftQ2[i]);
-          plotfftI.append(20.0*log10(absI));
-          plotfftQ.append(20.0*log10(absQ));
-          plotfftI2.append(20.0*log10(absI2));
-          plotfftQ2.append(20.0*log10(absQ2));
+
+         corrI[i-1] = fftI[i-1]*fftI2[i-1]+fftI[i]*fftI2[i];
+         corrI[i] = fftI[i-1]*fftI2[i] - fftI[i]*fftI2[i-1];
+         corrQ[i-1] = fftQ[i-1]*fftQ2[i-1]+fftQ[i]*fftQ2[i];
+         corrQ[i] = fftQ[i-1]*fftQ2[i] - fftQ[i]*fftQ2[i-1];
+
+         if (use_log){
+             absI = 20.0*log10(absI);
+             absQ = 20.0*log10(absQ);
+             absI2 = 20.0*log10(absI2);
+             absQ2 = 20.0*log10(absQ2);
+         }
+
+
+          plotfftI.append(absI);
+          plotfftQ.append(absQ);
+          plotfftI2.append(absI2);
+          plotfftQ2.append(absQ2);
           plotfftVec.append((double)((i-1)/2) * freqstep);
      }
+     updateFFTPlotIQ(nameL,nameU);
 
-     updateFFTPlotIQ();
+
+     plotDSPI.clear();
+     plotDSPQ.clear();
+     plotRngVec.clear();
+     double *mfiltI, *mfiltQ;
+     int mfiltI_len = ifftDataIQ(&mfiltI,corrI,(lenIQ/4));
+     int mfiltQ_len = ifftDataIQ(&mfiltQ,corrQ,(lenIQ/4));
+
+     double rel_perm = ui->relPermittivity_dSpinBox->value();
+     double fClock = (1000000.0)*ui->clockFreq_dSpinBox->value();
+     double range;
+     for(i=1;i<(mfiltI_len/2);i+=2){
+         absI = sqrt(mfiltI[i-1]*mfiltI[i-1]+mfiltI[i]*mfiltI[i]);
+         absQ = sqrt(mfiltQ[i-1]*mfiltQ[i-1]+mfiltQ[i]*mfiltQ[i]);
+         if (use_log){
+             absI = 20.0*log10(absI);
+             absQ = 20.0*log10(absQ);
+         }
+
+         range = (double)(SPEED_OF_LIGHT/sqrt(rel_perm))*((double)((i-1)/2))/(2.0*fClock);
+
+          plotDSPI.append(absI);
+          plotDSPQ.append(absQ);
+          plotRngVec.append(range);
+     }
+     QString nameI = "I Ch. Matched Filter";
+     QString nameQ = "Q Ch. Matched Filter";
+
+     updateDSPPlotIQ(nameI,nameQ);
+
+     delete[] corrI;
+     delete[] corrQ;
+     delete[] mfiltI;
+     delete[] mfiltQ;
 
      delete[] fftI;
      delete[] fftQ;
      delete[] fftI2;
      delete[] fftQ2;
-//     delete[] counter;
-//     delete[] dataIQ;
      delete[] dataU;
      delete[] dataL;
      delete[] cjumps;
-//      free(counter);
-//      free(dataIQ);
-//      free(cjumps);
 
 }
 
@@ -1851,6 +2044,34 @@ int UDAR_Controller::fftData(double **fft, QVector<double> &data, int datasize){
     return len;
 }
 
+int UDAR_Controller::ifftDataIQ(double **ifftIQ, double *dataIQ, int datasize){
+    int i;
+    uint64_t n, nn, nz, len;
+
+    nn = (uint64_t) datasize;
+
+    // Construct double array with I at even indices and Q at odd indices
+    len = ceiling2(nn<<2);
+    nz = len>>1;
+    n = nn<<1;
+
+    double *arrayIQ = new double[len];
+
+    // generate sequences of length n with nn complex data points
+    for(i=1;i<n;i+=2){
+        arrayIQ[i-1] = dataIQ[i];
+        arrayIQ[i] = dataIQ[i-1];
+    }
+    zeroPad(arrayIQ,n,len);
+
+    //fftCT_v2(arrayIQ,nz);
+
+    ifftR_v3(arrayIQ,nz);
+
+    *ifftIQ = arrayIQ;
+
+    return len;
+}
 
 int UDAR_Controller::fftDataIQ(double **fftIQ, uint32_t *dataIQ, int datasize){
     int i;
@@ -2421,7 +2642,8 @@ void UDAR_Controller::on_resetIndexZero_pressed(){
 void UDAR_Controller::updateRXStatus(){
      QString qstr = interfaceMap[ui->networkInterfaces->currentText()]->GetThreadStatus();
     if ((interfaceMap[ui->networkInterfaces->currentText()]->IsListening())&(ui->realtimePlot_checkBox->isChecked())){
-        on_plotOutputButton_clicked();
+        //on_plotOutputButton_clicked();
+        PlotFromExtBuffer();
     }
 
     if ((interfaceMap[ui->networkInterfaces->currentText()]->IsListening())&(ui->circularBuffer_checkBox->isChecked())){
@@ -2558,10 +2780,9 @@ void UDAR_Controller::on_getThreadStatus_clicked(){
 }
 
 void UDAR_Controller::on_printExtBuf_clicked(){
-    char tempstr[STR_SIZE];
+   char tempstr[STR_SIZE];
    int offset = RX_HEADER_SIZE;
    if (ui->printHeaderCheckBox->isChecked()) offset = 0;
-  // int err = interfaceMap[ui->networkInterfaces->currentText()]->PrintExtBuffer(offset);
    int extbufsize = interfaceMap[ui->networkInterfaces->currentText()]->GetExtBufferSize();
    unsigned char *extbuf;
    int err = interfaceMap[ui->networkInterfaces->currentText()]->GetExtBuffer(&extbuf,offset);
@@ -2571,6 +2792,294 @@ void UDAR_Controller::on_printExtBuf_clicked(){
    else {
        sprintf(tempstr,"No Ext Buf update available. Returned: %i",err);
        setTranscript(tempstr);
+   }
+
+   delete[] extbuf;
+}
+
+void UDAR_Controller::PlotFromExtBuffer(){
+   char tempstr[STR_SIZE];
+   int offset = RX_HEADER_SIZE;
+   int i;
+   if (ui->printHeaderCheckBox->isChecked()) offset = 0;
+
+   if (interfaceMap[ui->networkInterfaces->currentText()]->IsListening()!=1){
+       return;
+    }
+
+  // int err = interfaceMap[ui->networkInterfaces->currentText()]->PrintExtBuffer(offset);
+   int extbufsize = interfaceMap[ui->networkInterfaces->currentText()]->GetExtBufferSize();
+   int numextbufs = interfaceMap[ui->networkInterfaces->currentText()]->GetNumExtBuffers();
+   u_char *extbuf;
+   int err = interfaceMap[ui->networkInterfaces->currentText()]->GetExtBuffer(&extbuf,offset,numextbufs);
+   if(err != (numextbufs*(extbufsize-offset))){
+       sprintf(tempstr,"[PlotFromExtBuffer] Error: No Ext Buf available. Returned: %i",err);
+       setTranscript(tempstr);
+   }
+   else {
+       uint32_t *dataU = NULL;
+       uint32_t *dataL = NULL;
+       int *cjumps = NULL;
+       int set_counteroffset = 1;
+       int set_sindex = 0;
+       int reverse_word = 0;
+
+       int psize = extbufsize-offset;
+
+       int datasize = decodeDataPacket(&dataU,&dataL,extbuf,psize,numextbufs,set_counteroffset,set_sindex,reverse_word);
+
+       if (datasize == -1) {
+         //fprintf(stderr, "Decode Packet failed. Returned: %i\n" ,datasize);
+         //exit(1);
+         setTranscript("Decode Packet failed. Returned: -1");
+         return;
+       }
+       int numjumps = decodeDataJumps(&cjumps,dataU,dataL, datasize);
+       int nchirps = numjumps/2;
+
+//         char statstr[128];
+//         sprintf(statstr,"datasize: %i,dataU[0]: %u, dataU[end-1]: %u, dataL[0]: %u, dataL[end-1]: %u, numjumps: %i\n",datasize,dataU[0],dataU[datasize-1],dataL[0],dataL[datasize-1],numjumps);
+//         setTranscript(statstr);
+
+         int plotrng = PLOT_RANGE_LIMIT;
+         if (plotrng > datasize) plotrng = datasize;
+
+         int cjump_ind = 0;
+         int cjump_off = 0;
+
+         if (numjumps >3) {
+              cjump_ind = numjumps-3;
+              cjump_off = cjumps[numjumps-3];
+              plotrng = cjumps[numjumps-2]-cjump_off;
+          }
+        else if (numjumps >2) {
+             cjump_ind = 1;
+             cjump_off = cjumps[1];
+             plotrng = cjumps[2]-cjump_off;
+         }
+         else {
+             if(datasize>plotrng) cjump_off = datasize-plotrng;
+         }
+         if(plotrng>(datasize-cjump_off)) plotrng = datasize-cjump_off;
+         int time_ind = 0;
+
+         QString nameL = GetRxDataFormatName(0);
+         QString nameU = GetRxDataFormatName(1);
+
+         int plot_index = ui->tabWidget_c->currentIndex();
+
+         if (plot_index < 2){
+            plotDataI.clear();
+            plotDataI2.clear();
+            plotDataQ.clear();
+            plotDataQ2.clear();
+            plotTimeVec.clear();
+            for(i=cjump_off;i<(plotrng+cjump_off);i++){
+                 if (i == cjumps[cjump_ind]){
+                     cjump_ind++;
+                 }
+                 else {
+                     plotDataI.append((double)(*((int16_t *)dataL+2*i+1)));
+                     plotDataQ.append((double)(*((int16_t *)dataL+2*i)));
+                     plotDataI2.append((double)(*((int16_t *)dataU+2*i+1)));
+                     plotDataQ2.append((double)(*((int16_t *)dataU+2*i)));
+                     plotTimeVec.append((double)time_ind);
+                     time_ind++;
+
+                 }
+             }
+            //updateDataPlotIQ(nameL,nameU);
+            if(plot_index == 0) {
+                updateDataPlot(ui->plotI,plotTimeVec,plotDataI,0,nameL);
+                updateDataPlot(ui->plotI2,plotTimeVec,plotDataI2,0,nameU);
+            }
+            else{
+                updateDataPlot(ui->plotQ,plotTimeVec,plotDataQ,0,nameL);
+                updateDataPlot(ui->plotQ2,plotTimeVec,plotDataQ2,0,nameU);
+            }
+         }
+         else if (plot_index < 5){
+             int start_offset;
+             int fft_plotlen;
+
+             if (numjumps >2){
+               start_offset = cjumps[numjumps-3]+1;
+               fft_plotlen = cjumps[numjumps-2]-1-start_offset;
+             }
+             else if (numjumps >1){
+               start_offset = cjumps[0]+1;
+               fft_plotlen = cjumps[1]-1 - start_offset;
+             }
+             else {
+               start_offset = 0;
+               fft_plotlen = datasize;
+             }
+
+            double *fftI, *fftQ,*fftI2, *fftQ2, *fftIQ, *fftIQ2;
+            int lenI = fftDataI(&fftI,dataL+start_offset,fft_plotlen);
+            int lenQ = fftDataQ(&fftQ,dataL+start_offset,fft_plotlen);
+            int lenI2 = fftDataI(&fftI2,dataU+start_offset,fft_plotlen);
+            int lenQ2 = fftDataQ(&fftQ2,dataU+start_offset,fft_plotlen);
+
+            int lenIQmix = fftDataIQ(&fftIQ,dataL+start_offset,fft_plotlen);
+            int lenIQ2mix = fftDataQ(&fftIQ2,dataU+start_offset,fft_plotlen);
+
+            int lenIQ;
+            if(lenI != lenQ){
+                setTranscript("IQ Vector Length Mismatch!");
+                if (lenI >lenQ) lenIQ = lenQ;
+                else lenIQ = lenI;
+            }
+            else {
+                lenIQ = lenI;
+            }
+
+            int lenIQ2;
+            if(lenI2 != lenQ2){
+                setTranscript("IQ Vector Length Mismatch!");
+                if (lenI2 >lenQ2) lenIQ2 = lenQ2;
+                else lenIQ2 = lenI2;
+            }
+            else {
+                lenIQ2 = lenI2;
+            }
+
+            if(lenIQ != lenIQ2){
+                setTranscript("IQ and IQ2 Vector Length Mismatch!");
+                if (lenIQ >lenIQ2) lenIQ = lenIQ2;
+                else lenIQ2 = lenIQ;
+            }
+
+            double freqstep = (double)2.0*SAMPLING_FREQ/lenIQ;
+
+            plotfftI.clear();
+            plotfftQ.clear();
+            plotfftI2.clear();
+            plotfftQ2.clear();
+            plotfftVec.clear();
+            double absI,absQ,absI2,absQ2, absIQ;
+
+            int use_log = ui->logScale_checkBox->isChecked();
+
+            double *corrI = new double[lenIQ/2];
+            double *corrQ = new double[lenIQ/2];
+            double *corrIQ = new double[lenIQ/2];
+
+            for(i=1;i<(lenIQ/2);i+=2){
+                absI = sqrt(fftI[i-1]*fftI[i-1]+fftI[i]*fftI[i]);
+                absQ = sqrt(fftQ[i-1]*fftQ[i-1]+fftQ[i]*fftQ[i]);
+                absI2 = sqrt(fftI2[i-1]*fftI2[i-1]+fftI2[i]*fftI2[i]);
+                absQ2 = sqrt(fftQ2[i-1]*fftQ2[i-1]+fftQ2[i]*fftQ2[i]);
+
+                corrI[i-1] = fftI[i-1]*fftI2[i-1]+fftI[i]*fftI2[i];
+                corrI[i] = fftI[i-1]*fftI2[i]-fftI[i]*fftI2[i-1];
+                corrQ[i-1] = fftQ[i-1]*fftQ2[i-1]+fftQ[i]*fftQ2[i];
+                corrQ[i] = fftQ[i-1]*fftQ2[i] -fftQ[i]*fftQ2[i-1];
+
+                corrIQ[i-1] = fftIQ[i-1]*fftIQ2[i-1]+fftIQ[i]*fftIQ2[i];
+                corrIQ[i] = fftIQ[i-1]*fftIQ2[i]-fftIQ[i]*fftIQ2[i-1];
+
+                if (use_log){
+                    absI = 20.0*log10(absI);
+                    absQ = 20.0*log10(absQ);
+                    absI2 = 20.0*log10(absI2);
+                    absQ2 = 20.0*log10(absQ2);
+                }
+
+
+                 plotfftI.append(absI);
+                 plotfftQ.append(absQ);
+                 plotfftI2.append(absI2);
+                 plotfftQ2.append(absQ2);
+
+                 plotfftVec.append((double)((i-1)/2) * freqstep);
+            }
+            plotDSPI.clear();
+            plotDSPQ.clear();
+            plotDSPIQ.clear();
+            plotRngVec.clear();
+
+            double *mfiltI, *mfiltQ, *mfiltIQ;
+
+            int mfiltI_len = ifftDataIQ(&mfiltI,corrI,lenIQ/4);
+            int mfiltQ_len = ifftDataIQ(&mfiltQ,corrQ,lenIQ/4);
+            int mfiltIQ_len = ifftDataIQ(&mfiltIQ,corrIQ,lenIQ/4);
+
+            int mixIQ = ui->mixIQ_checkBox->isChecked();
+
+            double rel_perm = ui->relPermittivity_dSpinBox->value();
+            double fClock = (1000000.0)*ui->clockFreq_dSpinBox->value();
+            double range;
+            double rind_zero = (double)radar_calib_zero.peak_index_i;
+
+            for(i=1;i<(mfiltI_len/4);i+=2){
+                absI = sqrt(mfiltI[i-1]*mfiltI[i-1]+mfiltI[i]*mfiltI[i]);
+                absQ = sqrt(mfiltQ[i-1]*mfiltQ[i-1]+mfiltQ[i]*mfiltQ[i]);
+                absIQ = sqrt(mfiltIQ[i-1]*mfiltIQ[i-1]+mfiltIQ[i]*mfiltIQ[i]);
+                if (use_log){
+                    absI = 20.0*log10(absI);
+                    absQ = 20.0*log10(absQ);
+                    absIQ = 20.0*log10(absIQ);
+                }
+
+                 plotDSPI.append(absI);
+                 plotDSPQ.append(absQ);
+                 plotDSPIQ.append(absIQ);
+                 range = (double)(SPEED_OF_LIGHT/sqrt(rel_perm))*((double)((i-1)/2)-rind_zero)/(2.0*fClock);
+                 plotRngVec.append(range);
+            }
+
+                //updateFFTPlotIQ(nameL,nameU);
+            if(plot_index == 2) {
+                updateDataPlot(ui->plotFFTI,plotfftVec,plotfftI,0,nameL);
+                updateDataPlot(ui->plotFFTI2,plotfftVec,plotfftI2,0,nameU);
+            }
+            else if(plot_index == 3) {
+                updateDataPlot(ui->plotFFTQ,plotfftVec,plotfftQ,0,nameL);
+                updateDataPlot(ui->plotFFTQ2,plotfftVec,plotfftQ2,0,nameU);
+
+            }
+            else {
+                if (mixIQ == 1){
+                    QString nameI = "I Ch. Matched Filter";
+                    QString nameQ = "Q Ch. Matched Filter";
+                    QString nameIQ = "IQ Mixed Matched Filter";
+                    updateDataPlot(ui->plotC,plotRngVec,plotDSPI,0,nameI);
+                    updateDataPlot(ui->plotC,plotRngVec,plotDSPQ,1,nameQ);
+                    ui->plotC->graph(1)->addToLegend();
+                    updateDataPlot(ui->plotC2,plotRngVec,plotDSPIQ,0,nameIQ);
+
+                }
+                else{
+                    QString nameI = "I Ch. Matched Filter";
+                    QString nameQ = "Q Ch. Matched Filter";
+                    updateDataPlot(ui->plotC,plotRngVec,plotDSPI,0,nameI);
+                    updateDataPlot(ui->plotC2,plotRngVec,plotDSPQ,0,nameQ);
+                    ui->plotC->graph(1)->clearData();
+                    ui->plotC->graph(1)->removeFromLegend();
+
+                }
+            }
+
+                delete[] fftI;
+                delete[] fftQ;
+                delete[] fftI2;
+                delete[] fftQ2;
+                delete[] fftIQ;
+                delete[] fftIQ2;
+                delete[] corrI;
+                delete[] corrQ;
+                delete[] corrIQ;
+
+                delete[]mfiltI;
+                delete[]mfiltQ;
+                delete[]mfiltIQ;
+
+         }
+
+        delete[] dataU;
+        delete[] dataL;
+        delete[] cjumps;
    }
 
    delete[] extbuf;

@@ -60,7 +60,7 @@ void too_short(struct timeval ts, const char *truncated_hdr);
 */
 void dump_UDP_packet(const unsigned char *packet, struct timeval ts,unsigned int capture_len);
 
-int decodeDataPacket(uint32_t **dataU, uint32_t **dataL,unsigned char *packet_data, int size, int numpkts,int counter_offset, int s_index);
+int decodeDataPacket(uint32_t **dataU, uint32_t **dataL,unsigned char *packet_data, int size, int numpkts,int counter_offset, int s_index, int reverse_word);
 int decodePacket(uint32_t **dataIQ, uint32_t **counter,unsigned char *packet_data,int size, int numpkts);
 int decodePacket(uint32_t **dataIQ, uint32_t **counter,unsigned char *packet_data,int size, int numpkts, int counter_offset, int s_index);
 

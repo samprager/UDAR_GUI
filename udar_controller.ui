@@ -1116,7 +1116,7 @@
      </widget>
      <widget class="QWidget" name="tab_c4">
       <attribute name="title">
-       <string>Counter</string>
+       <string>DSP</string>
       </attribute>
       <widget class="QCustomPlot" name="plotC" native="true">
        <property name="geometry">
@@ -1324,7 +1324,7 @@
       </rect>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
@@ -1406,7 +1406,7 @@
         <rect>
          <x>12</x>
          <y>80</y>
-         <width>291</width>
+         <width>257</width>
          <height>21</height>
         </rect>
        </property>
@@ -1470,6 +1470,19 @@
        </property>
        <property name="checked">
         <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="plotOutputButton">
+       <property name="geometry">
+        <rect>
+         <x>286</x>
+         <y>76</y>
+         <width>101</width>
+         <height>32</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Plot Data</string>
        </property>
       </widget>
      </widget>
@@ -1994,27 +2007,14 @@
     <widget class="QPushButton" name="writeButton">
      <property name="geometry">
       <rect>
-       <x>820</x>
-       <y>206</y>
+       <x>920</x>
+       <y>202</y>
        <width>94</width>
        <height>32</height>
       </rect>
      </property>
      <property name="text">
       <string>Send Config</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="plotOutputButton">
-     <property name="geometry">
-      <rect>
-       <x>918</x>
-       <y>204</y>
-       <width>101</width>
-       <height>32</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Plot Data</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_33">
@@ -2081,8 +2081,8 @@
     <widget class="QCheckBox" name="realtimePlot_checkBox">
      <property name="geometry">
       <rect>
-       <x>1142</x>
-       <y>42</y>
+       <x>832</x>
+       <y>212</y>
        <width>86</width>
        <height>20</height>
       </rect>
@@ -2090,12 +2090,15 @@
      <property name="text">
       <string>Auto plot</string>
      </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
     </widget>
     <widget class="QCheckBox" name="circularBuffer_checkBox">
      <property name="geometry">
       <rect>
-       <x>1142</x>
-       <y>22</y>
+       <x>1132</x>
+       <y>30</y>
        <width>97</width>
        <height>20</height>
       </rect>
@@ -2120,8 +2123,8 @@
     <widget class="QLabel" name="label_39">
      <property name="geometry">
       <rect>
-       <x>838</x>
-       <y>244</y>
+       <x>940</x>
+       <y>230</y>
        <width>95</width>
        <height>16</height>
       </rect>
@@ -2133,8 +2136,8 @@
     <widget class="QRadioButton" name="DDSsourceChirp_radioButton">
      <property name="geometry">
       <rect>
-       <x>838</x>
-       <y>260</y>
+       <x>940</x>
+       <y>246</y>
        <width>100</width>
        <height>20</height>
       </rect>
@@ -2152,8 +2155,8 @@
     <widget class="QRadioButton" name="DDSsourceWave_radioButton">
      <property name="geometry">
       <rect>
-       <x>836</x>
-       <y>280</y>
+       <x>938</x>
+       <y>266</y>
        <width>89</width>
        <height>20</height>
       </rect>
@@ -2164,6 +2167,54 @@
      <attribute name="buttonGroup">
       <string notr="true">buttonGroup_7</string>
      </attribute>
+    </widget>
+    <widget class="QCheckBox" name="autoScale_checkBox">
+     <property name="geometry">
+      <rect>
+       <x>832</x>
+       <y>260</y>
+       <width>85</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Auto scale</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="logScale_checkBox">
+     <property name="geometry">
+      <rect>
+       <x>832</x>
+       <y>282</y>
+       <width>81</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Log scale</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="mixIQ_checkBox">
+     <property name="geometry">
+      <rect>
+       <x>832</x>
+       <y>234</y>
+       <width>86</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Mix IQ</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
     </widget>
    </widget>
   </widget>

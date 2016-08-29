@@ -72,11 +72,14 @@ public:
     int initWrThread();
     QString GetThreadStatus();
     int KillThreads();
+    int KillWrThreads();
     int GetFileMutex(pthread_mutex_t &fmutex);
     char *GetRxFilename();
     int PrintExtBuffer(int offset);
+    int GetNumExtBuffers();
     int GetExtBufferSize();
     int GetExtBuffer(u_char **extbuffer,int offset);
+    int GetExtBuffer(u_char **extbuffer,int offset, int n);
     int GetStatBufferSize();
     int GetStatBuffer(unsigned char **statbuffer, int offset);
 

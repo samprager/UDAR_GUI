@@ -150,6 +150,7 @@ public:
     QLabel *label_24;
     QLabel *label_23;
     QCheckBox *decodeCounterCheckBox;
+    QPushButton *plotOutputButton;
     QWidget *tab;
     QRadioButton *injectReadCmd_radioButton;
     QRadioButton *injectWriteCmd_radioButton;
@@ -190,7 +191,6 @@ public:
     QPushButton *killThread;
     QPushButton *listenButton;
     QPushButton *writeButton;
-    QPushButton *plotOutputButton;
     QLabel *label_33;
     QDoubleSpinBox *relPermittivity_dSpinBox;
     QPushButton *calibrateIndexZero;
@@ -201,6 +201,9 @@ public:
     QLabel *label_39;
     QRadioButton *DDSsourceChirp_radioButton;
     QRadioButton *DDSsourceWave_radioButton;
+    QCheckBox *autoScale_checkBox;
+    QCheckBox *logScale_checkBox;
+    QCheckBox *mixIQ_checkBox;
     QMenuBar *menuBar;
     QMenu *menuUDAR_GUI;
     QToolBar *mainToolBar;
@@ -617,7 +620,7 @@ public:
         promiscModeCheckBox->setGeometry(QRect(154, 52, 113, 20));
         recOutputDirectory = new QLineEdit(tab_2);
         recOutputDirectory->setObjectName(QStringLiteral("recOutputDirectory"));
-        recOutputDirectory->setGeometry(QRect(12, 80, 291, 21));
+        recOutputDirectory->setGeometry(QRect(12, 80, 257, 21));
         appendInterfaceCheckBox = new QCheckBox(tab_2);
         appendInterfaceCheckBox->setObjectName(QStringLiteral("appendInterfaceCheckBox"));
         appendInterfaceCheckBox->setGeometry(QRect(154, 28, 137, 20));
@@ -632,6 +635,9 @@ public:
         decodeCounterCheckBox->setObjectName(QStringLiteral("decodeCounterCheckBox"));
         decodeCounterCheckBox->setGeometry(QRect(288, 52, 103, 20));
         decodeCounterCheckBox->setChecked(true);
+        plotOutputButton = new QPushButton(tab_2);
+        plotOutputButton->setObjectName(QStringLiteral("plotOutputButton"));
+        plotOutputButton->setGeometry(QRect(286, 76, 101, 32));
         tabWidget_b->addTab(tab_2, QString());
         tab = new QWidget();
         tab->setObjectName(QStringLiteral("tab"));
@@ -779,10 +785,7 @@ public:
         listenButton->setGeometry(QRect(922, 28, 94, 32));
         writeButton = new QPushButton(groupBox);
         writeButton->setObjectName(QStringLiteral("writeButton"));
-        writeButton->setGeometry(QRect(820, 206, 94, 32));
-        plotOutputButton = new QPushButton(groupBox);
-        plotOutputButton->setObjectName(QStringLiteral("plotOutputButton"));
-        plotOutputButton->setGeometry(QRect(918, 204, 101, 32));
+        writeButton->setGeometry(QRect(920, 202, 94, 32));
         label_33 = new QLabel(groupBox);
         label_33->setObjectName(QStringLiteral("label_33"));
         label_33->setGeometry(QRect(1128, 234, 105, 16));
@@ -801,28 +804,41 @@ public:
         resetIndexZero->setGeometry(QRect(1126, 202, 113, 33));
         realtimePlot_checkBox = new QCheckBox(groupBox);
         realtimePlot_checkBox->setObjectName(QStringLiteral("realtimePlot_checkBox"));
-        realtimePlot_checkBox->setGeometry(QRect(1142, 42, 86, 20));
+        realtimePlot_checkBox->setGeometry(QRect(832, 212, 86, 20));
+        realtimePlot_checkBox->setChecked(true);
         circularBuffer_checkBox = new QCheckBox(groupBox);
         circularBuffer_checkBox->setObjectName(QStringLiteral("circularBuffer_checkBox"));
-        circularBuffer_checkBox->setGeometry(QRect(1142, 22, 97, 20));
+        circularBuffer_checkBox->setGeometry(QRect(1132, 30, 97, 20));
         statusTranscript = new QTextEdit(groupBox);
         statusTranscript->setObjectName(QStringLiteral("statusTranscript"));
         statusTranscript->setGeometry(QRect(830, 64, 401, 137));
         statusTranscript->setStyleSheet(QStringLiteral("font: 10pt \"Menlo\";"));
         label_39 = new QLabel(groupBox);
         label_39->setObjectName(QStringLiteral("label_39"));
-        label_39->setGeometry(QRect(838, 244, 95, 16));
+        label_39->setGeometry(QRect(940, 230, 95, 16));
         DDSsourceChirp_radioButton = new QRadioButton(groupBox);
         buttonGroup_7 = new QButtonGroup(UDAR_Controller);
         buttonGroup_7->setObjectName(QStringLiteral("buttonGroup_7"));
         buttonGroup_7->addButton(DDSsourceChirp_radioButton);
         DDSsourceChirp_radioButton->setObjectName(QStringLiteral("DDSsourceChirp_radioButton"));
-        DDSsourceChirp_radioButton->setGeometry(QRect(838, 260, 100, 20));
+        DDSsourceChirp_radioButton->setGeometry(QRect(940, 246, 100, 20));
         DDSsourceChirp_radioButton->setChecked(true);
         DDSsourceWave_radioButton = new QRadioButton(groupBox);
         buttonGroup_7->addButton(DDSsourceWave_radioButton);
         DDSsourceWave_radioButton->setObjectName(QStringLiteral("DDSsourceWave_radioButton"));
-        DDSsourceWave_radioButton->setGeometry(QRect(836, 280, 89, 20));
+        DDSsourceWave_radioButton->setGeometry(QRect(938, 266, 89, 20));
+        autoScale_checkBox = new QCheckBox(groupBox);
+        autoScale_checkBox->setObjectName(QStringLiteral("autoScale_checkBox"));
+        autoScale_checkBox->setGeometry(QRect(832, 260, 85, 20));
+        autoScale_checkBox->setChecked(false);
+        logScale_checkBox = new QCheckBox(groupBox);
+        logScale_checkBox->setObjectName(QStringLiteral("logScale_checkBox"));
+        logScale_checkBox->setGeometry(QRect(832, 282, 81, 20));
+        logScale_checkBox->setChecked(true);
+        mixIQ_checkBox = new QCheckBox(groupBox);
+        mixIQ_checkBox->setObjectName(QStringLiteral("mixIQ_checkBox"));
+        mixIQ_checkBox->setGeometry(QRect(832, 234, 86, 20));
+        mixIQ_checkBox->setChecked(true);
         UDAR_Controller->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(UDAR_Controller);
         menuBar->setObjectName(QStringLiteral("menuBar"));
@@ -843,7 +859,7 @@ public:
 
         tabWidget_a->setCurrentIndex(1);
         tabWidget_c->setCurrentIndex(0);
-        tabWidget_b->setCurrentIndex(1);
+        tabWidget_b->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(UDAR_Controller);
@@ -898,7 +914,7 @@ public:
         tabWidget_c->setTabText(tabWidget_c->indexOf(tab_c3), QApplication::translate("UDAR_Controller", "Q Channel", 0));
         tabWidget_c->setTabText(tabWidget_c->indexOf(tab_c5), QApplication::translate("UDAR_Controller", "I Ch. Spectrum", 0));
         tabWidget_c->setTabText(tabWidget_c->indexOf(tab_c6), QApplication::translate("UDAR_Controller", "Q Ch. Spectrum", 0));
-        tabWidget_c->setTabText(tabWidget_c->indexOf(tab_c4), QApplication::translate("UDAR_Controller", "Counter", 0));
+        tabWidget_c->setTabText(tabWidget_c->indexOf(tab_c4), QApplication::translate("UDAR_Controller", "DSP", 0));
         getThreadStatus->setText(QApplication::translate("UDAR_Controller", "Thread Status", 0));
         testButton->setText(QApplication::translate("UDAR_Controller", "Inject Test Packet", 0));
         label_10->setText(QApplication::translate("UDAR_Controller", "Address", 0));
@@ -919,6 +935,7 @@ public:
         label_24->setText(QApplication::translate("UDAR_Controller", "Write Limit", 0));
         label_23->setText(QApplication::translate("UDAR_Controller", "Output Filename", 0));
         decodeCounterCheckBox->setText(QApplication::translate("UDAR_Controller", "Decode Counter", 0));
+        plotOutputButton->setText(QApplication::translate("UDAR_Controller", "Plot Data", 0));
         tabWidget_b->setTabText(tabWidget_b->indexOf(tab_2), QApplication::translate("UDAR_Controller", "RX", 0));
         injectReadCmd_radioButton->setText(QApplication::translate("UDAR_Controller", "Read Config", 0));
         injectWriteCmd_radioButton->setText(QApplication::translate("UDAR_Controller", "Write Config", 0));
@@ -955,7 +972,6 @@ public:
         killThread->setText(QApplication::translate("UDAR_Controller", "Kill Threads", 0));
         listenButton->setText(QApplication::translate("UDAR_Controller", "Listen", 0));
         writeButton->setText(QApplication::translate("UDAR_Controller", "Send Config", 0));
-        plotOutputButton->setText(QApplication::translate("UDAR_Controller", "Plot Data", 0));
         label_33->setText(QApplication::translate("UDAR_Controller", "Relative Permittivity", 0));
         calibrateIndexZero->setText(QApplication::translate("UDAR_Controller", "Calibrate/Zero", 0));
         resetIndexZero->setText(QApplication::translate("UDAR_Controller", "Reset Calibration", 0));
@@ -964,6 +980,9 @@ public:
         label_39->setText(QApplication::translate("UDAR_Controller", "AWG Source", 0));
         DDSsourceChirp_radioButton->setText(QApplication::translate("UDAR_Controller", "Chirp DDS", 0));
         DDSsourceWave_radioButton->setText(QApplication::translate("UDAR_Controller", "Wave File", 0));
+        autoScale_checkBox->setText(QApplication::translate("UDAR_Controller", "Auto scale", 0));
+        logScale_checkBox->setText(QApplication::translate("UDAR_Controller", "Log scale", 0));
+        mixIQ_checkBox->setText(QApplication::translate("UDAR_Controller", "Mix IQ", 0));
         menuUDAR_GUI->setTitle(QApplication::translate("UDAR_Controller", "UDAR GUI", 0));
     } // retranslateUi
 

@@ -110,44 +110,39 @@ void *listenThread(void *args){
             newdata[i] = 1;
             pthread_mutex_unlock(&mutex[i]);
 
-            if(ext_ind < numextbufs) {
-                //memcpy(pextbuffer[ext_ind],packet+offset,header.caplen-offset-trim);
-                memcpy(pextbuffer[ext_ind],packet,header.caplen);
-                ext_ind++;
-            }
-            else if((ext_ind == numextbufs) & (ext_buffer_empty==1)){
-                ext_buffer_empty = 0;
-                pthread_mutex_lock(&extmutex[0]);
-                extstatus[0] = ext_buffer_empty;
-                pthread_mutex_unlock(&extmutex[0]);
-            }
-            else {
-                pthread_mutex_lock(&extmutex[0]);
-                ext_buffer_empty = extstatus[0];
-                pthread_mutex_unlock(&extmutex[0]);
-                if (ext_buffer_empty){
-                    ext_ind = 0;
-                }
-            }
+
+            pthread_mutex_lock(&extmutex[0]);
+            extstatus[0] = ext_ind;
+            pthread_mutex_unlock(&extmutex[0]);
+
+            pthread_mutex_lock(&extmutex[ext_ind]);
+            memcpy(pextbuffer[ext_ind],packet,header.caplen);
+            pthread_mutex_unlock(&extmutex[ext_ind]);
+            ext_ind = (ext_ind+1)%numextbufs;
+
 
 //            if(ext_ind < numextbufs) {
-//                memcpy(pextbuffer[ext_ind],packet+offset,header.caplen-offset-trim);
+//                //memcpy(pextbuffer[ext_ind],packet+offset,header.caplen-offset-trim);
+//                pthread_mutex_lock(&extmutex[ext_ind]);
+//                memcpy(pextbuffer[ext_ind],packet,header.caplen);
+//                pthread_mutex_unlock(&extmutex[ext_ind]);
 //                ext_ind++;
 //            }
 //            else if((ext_ind == numextbufs) & (ext_buffer_empty==1)){
 //                ext_buffer_empty = 0;
+//                pthread_mutex_lock(&extmutex[0]);
 //                extstatus[0] = ext_buffer_empty;
 //                pthread_mutex_unlock(&extmutex[0]);
-//            }else {
+//            }
+//            else {
 //                pthread_mutex_lock(&extmutex[0]);
 //                ext_buffer_empty = extstatus[0];
+//                pthread_mutex_unlock(&extmutex[0]);
 //                if (ext_buffer_empty){
 //                    ext_ind = 0;
 //                }
-//                else {
-//                    pthread_mutex_unlock(&extmutex[0]);
-//                }
 //            }
+
             i = (i+1)%numbufs;
             wcount++;
             threadcontrol[2] = wcount;
@@ -172,7 +167,9 @@ void *listenThread(void *args){
             pthread_mutex_unlock(&mutex[i]);
 
             if(ext_ind < numextbufs) {
+                pthread_mutex_lock(&extmutex[ext_ind]);
                 memcpy(pextbuffer[ext_ind],packet,copylen);
+                pthread_mutex_unlock(&extmutex[ext_ind]);
                 ext_ind++;
                 printf("%i ",ext_ind);
             }
@@ -290,7 +287,7 @@ void *writeThread(void *args){
 void *extBufferThread(void *args){
     int i,ext_ind;
     int numbufs,numextbufs,len,offset,trim;
-    int threadexit;
+    int threadexit, ext_buffer_empty;
     int *dim, *threadcontrol, *extstatus;
     struct arg_struct *arguments = (struct arg_struct *)args;
     dim = (int *)arguments->dimensions;
@@ -323,15 +320,16 @@ void *extBufferThread(void *args){
 
    threadcontrol[4] = 0;
    while (threadexit==0){
-       pthread_mutex_lock(&extmutex[0]);
-       if(extstatus[0]==0){
-           pthread_mutex_unlock(&extmutex[0]);
-           usleep(1000);
-           pthread_mutex_lock(&extmutex[0]);
-           extstatus[0]=1;
-       }
-       pthread_mutex_unlock(&extmutex[0]);
        usleep(1000);
+//       pthread_mutex_lock(&extmutex[0]);
+//       ext_buffer_empty = extstatus[0];
+//       pthread_mutex_unlock(&extmutex[0]);
+//       if(ext_buffer_empty==0){
+//           usleep(1000);
+//           pthread_mutex_lock(&extmutex[0]);
+//           extstatus[0]=1;
+//           pthread_mutex_unlock(&extmutex[0]);
+//       }
        threadexit = threadcontrol[0];
 
    }
